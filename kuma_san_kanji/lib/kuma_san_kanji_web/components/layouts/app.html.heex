@@ -1,0 +1,19 @@
+<KumaSanKanjiWeb.Components.Navigation.navbar current_user={assigns[:current_user]} />
+<main class="px-4 py-20 sm:px-6 lg:px-8">
+  <div class="mx-auto max-w-7xl">
+    <.flash_group flash={@flash} />
+    <div class="mb-6 flex justify-center">
+      <div class="mascots flex space-x-12">
+        <div class="tono-kun">
+          <img src={~p"/images/tono-kun.svg"} width="120" alt="Tono-kun" class="mb-2" />
+          <p class="text-center text-sm font-katakana text-gray-700">Tono-kun</p>
+        </div>
+        <div class="hime-chan">
+          <img src={~p"/images/hime-chan.svg"} width="120" alt="Hime-chan" class="mb-2" />
+          <p class="text-center text-sm font-katakana text-gray-700">Hime-chan</p>
+        </div>
+      </div>
+    </div>
+    {@inner_content}
+  </div>
+</main>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200" fill="none">
+  <!-- Hime-chan, a female red shiba inu -->
+  
+  <!-- Body -->
+  <ellipse cx="100" cy="120" rx="70" ry="60" fill="#E05D44" />
+  
+  <!-- Head -->
+  <circle cx="100" cy="80" r="50" fill="#E05D44" />
+  
+  <!-- Ears -->
+  <path d="M60 50C50 30 40 35 45 55" stroke="#E05D44" stroke-width="18" stroke-linecap="round" />
+  <path d="M140 50C150 30 160 35 155 55" stroke="#E05D44" stroke-width="18" stroke-linecap="round" />
+  
+  <!-- Eyes -->
+  <ellipse cx="80" cy="75" rx="5" ry="7" fill="black" />
+  <ellipse cx="120" cy="75" rx="5" ry="7" fill="black" />
+  
+  <!-- Eyelashes -->
+  <path d="M73 67L70 63" stroke="black" stroke-width="1" />
+  <path d="M80 67L83 63" stroke="black" stroke-width="1" />
+  <path d="M113 67L110 63" stroke="black" stroke-width="1" />
+  <path d="M120 67L123 63" stroke="black" stroke-width="1" />
+  
+  <!-- Nose -->
+  <path d="M95 85L100 90L105 85" stroke="black" stroke-width="2" />
+  <ellipse cx="100" cy="85" rx="5" ry="3" fill="black" />
+  
+  <!-- Mouth -->
+  <path d="M90 95C95 100 105 100 110 95" stroke="black" stroke-width="2" fill="none" stroke-linecap="round" />
+  
+  <!-- White markings -->
+  <path d="M70 95C75 105 85 115 100 115C115 115 125 105 130 95" fill="white" />
+  <path d="M80 140C85 150 95 155 100 155C105 155 115 150 120 140" fill="white" />
+  <ellipse cx="75" cy="150" rx="10" ry="8" fill="white" />
+  <ellipse cx="125" cy="150" rx="10" ry="8" fill="white" />
+  <circle cx="80" cy="65" r="2" fill="white" />
+  <circle cx="120" cy="65" r="2" fill="white" />
+  
+  <!-- Whiskers -->
+  <path d="M85 90L70 85" stroke="black" stroke-width="1" />
+  <path d="M85 92L70 92" stroke="black" stroke-width="1" />
+  <path d="M85 94L70 99" stroke="black" stroke-width="1" />
+  <path d="M115 90L130 85" stroke="black" stroke-width="1" />
+  <path d="M115 92L130 92" stroke="black" stroke-width="1" />
+  <path d="M115 94L130 99" stroke="black" stroke-width="1" />
+  
+  <!-- Bow accessory -->
+  <path d="M90 45C85 40 80 42 80 47C80 52 85 55 90 50" fill="#FF8DC8" />
+  <path d="M110 45C115 40 120 42 120 47C120 52 115 55 110 50" fill="#FF8DC8" />
+  <circle cx="100" cy="47" r="5" fill="#FFD7E9" />
+</svg>

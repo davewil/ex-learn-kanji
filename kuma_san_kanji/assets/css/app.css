@@ -1,0 +1,53 @@
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+/* Import Google Fonts for Katakana-style text and Japanese text */
+@import url('https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@400;500;700;900&family=Stick&family=Yuji+Syuku&family=Zen+Maru+Gothic:wght@400;500;700;900&display=swap');
+
+/* This file is for your main application CSS */
+
+/* Custom styles for Kuma-san Kanji */
+@layer components {
+  /* Kanji character display */
+  .kanji-display {
+    @apply text-8xl font-bold tracking-tight text-center p-8 leading-none text-sakura-dark;
+  }
+
+  /* Custom form styles */
+  .form-input-focused {
+    @apply focus:ring-2 focus:ring-accent-blue focus:border-accent-blue;
+  }
+  
+  /* Japanese title text */
+  .jp-title {
+    @apply font-display text-accent-blue;
+  }
+  
+  /* Cherry blossom themed buttons */
+  .btn-sakura {
+    @apply bg-sakura px-4 py-2 rounded-lg font-katakana font-bold text-white shadow-md 
+           hover:bg-sakura-dark transition-all duration-300;
+  }
+  
+  /* Accent themed buttons */
+  .btn-accent {
+    @apply bg-white px-4 py-2 rounded-lg font-katakana font-bold text-accent-blue border border-accent-blue shadow-md
+           hover:bg-gray-50 transition-all duration-300;
+  }
+}
+
+/* Additional styling for Japanese text */
+@layer utilities {
+  .jp-text {
+    font-family: "Noto Sans JP", "Hiragino Sans", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+  }
+  
+  .katakana-text {
+    @apply font-katakana;
+  }
+  
+  .display-text {
+    @apply font-display;
+  }
+}
