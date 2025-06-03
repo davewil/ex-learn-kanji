@@ -18,7 +18,7 @@ defmodule KumaSanKanji.Kanji.Pronunciation do
 
   actions do
     defaults [:read, :update, :destroy]
-    
+
     create :create do
       accept [:value, :type, :romaji, :kanji_id]
     end

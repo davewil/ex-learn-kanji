@@ -5,29 +5,29 @@ defmodule Mix.Tasks.KumaSanKanji.Seed do
   def run(_) do
     # Start the application
     Mix.Task.run("app.start")
-    
+
     # Delete existing data
     IO.puts("Clearing existing data...")
     # This is a simplified approach; in a real app, you might want to be more careful
     {:ok, _} = Mix.Task.run("ash.reset", ["--domains", "KumaSanKanji.Domain", "--yes"])
-    
+
     # Insert seed data
     IO.puts("Inserting seed data...")
     KumaSanKanji.Seeds.insert_initial_data()
-    
+
     # Verify the data was inserted
     alias KumaSanKanji.Kanji.Kanji
     case Ash.read(Kanji) do
-      {:ok, kanjis} -> 
+      {:ok, kanjis} ->
         IO.puts("Seed complete! Inserted #{length(kanjis)} kanji records.")
         if length(kanjis) > 0 do
           IO.puts("First few kanji:")
-          kanjis 
-          |> Enum.take(3) 
+          kanjis
+          |> Enum.take(3)
           |> Enum.each(fn kanji -> IO.puts("  - #{kanji.character}") end)
         end
-      
-      {:error, reason} -> 
+
+      {:error, reason} ->
         IO.puts("Error verifying seed data: #{inspect(reason)}")
     end
   end

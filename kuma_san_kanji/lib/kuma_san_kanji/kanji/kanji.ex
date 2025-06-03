@@ -30,9 +30,9 @@ defmodule KumaSanKanji.Kanji.Kanji do
     end    # Custom read action for getting by ID with relationships
     read :get_by_id do
       argument :id, :uuid, allow_nil?: false
-      
+
       filter expr(id == ^arg(:id))
-      
+
       prepare fn query, _context ->
         Ash.Query.limit(query, 1)
       end

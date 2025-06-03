@@ -3,7 +3,7 @@ defmodule KumaSanKanji.Kanji.ExampleSentenceTest do
 
   alias KumaSanKanji.Kanji.Kanji
   alias KumaSanKanji.Kanji.ExampleSentence
-  
+
   describe "ExampleSentence resource actions" do
     setup do
       # Create a fresh kanji for testing

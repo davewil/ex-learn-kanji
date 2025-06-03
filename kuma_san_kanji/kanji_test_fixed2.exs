@@ -18,7 +18,7 @@ defmodule KumaSanKanji.Kanji.KanjiTest do
       # Create kanji records sequentially. Their inserted_at timestamps should differ.
       # Note: Small delays might be needed if timestamp precision/test speed causes issues,
       # but utc_datetime_usec should generally provide enough precision.
-      
+
       k1 = Kanji.create!(%{character: "一", grade: 1, stroke_count: 1, jlpt_level: 5})
       Process.sleep(5) # Ensure distinct inserted_at if tests are extremely fast
       k2 = Kanji.create!(%{character: "二", grade: 1, stroke_count: 2, jlpt_level: 5})
@@ -45,7 +45,7 @@ defmodule KumaSanKanji.Kanji.KanjiTest do
     test "returns an empty list for an out-of-bounds offset", %{k1: _k1, k2: _k2, k3: _k3} do
       # Get the total count of kanji
       total_count = Kanji.count_all!()
-      
+
       # Try an offset beyond the end
       {:ok, result} = Kanji.by_offset(total_count)
       assert result == []
@@ -61,12 +61,12 @@ defmodule KumaSanKanji.Kanji.KanjiTest do
       assert length(result) == 1
     end
   end
-  
+
   describe ":count action (via count_all in code_interface)" do
     test "returns the correct count of kanji" do
       # Get initial count
       initial_count = Kanji.count_all!()
-      
+
       # Add a new kanji
       Kanji.create!(%{character: "愛", grade: 4, stroke_count: 13, jlpt_level: 3})
       count_after_one = Kanji.count_all!()

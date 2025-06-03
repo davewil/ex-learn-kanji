@@ -28,7 +28,7 @@ defmodule KumaSanKanjiWeb.Router do
     live "/explore", ExploreLive
     live "/signup", SignupLive
     live "/login", LoginLive
-    
+
     post "/login", AuthController, :login
     delete "/logout", AuthController, :logout
   end
@@ -36,7 +36,7 @@ defmodule KumaSanKanjiWeb.Router do
   # Protected routes that require authentication
   scope "/", KumaSanKanjiWeb do
     pipe_through [:browser, :require_auth]
-    
+
     # We'll add protected routes here later
   end
 

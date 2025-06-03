@@ -29,7 +29,7 @@ defmodule KumaSanKanji.Kanji.KanjiTest do
       # Create kanji records sequentially. Their inserted_at timestamps should differ.
       # Note: Small delays might be needed if timestamp precision/test speed causes issues,
       # but utc_datetime_usec should generally provide enough precision.
-      
+
       # Clear existing kanji first to ensure predictable offsets
       {:ok, kanjis} = Ash.read(Kanji)
       if kanjis && length(kanjis) > 0 do
@@ -37,7 +37,7 @@ defmodule KumaSanKanji.Kanji.KanjiTest do
           Ash.destroy!(kanji)
         end)
       end
-        
+
       k1 = Kanji.create!(%{character: "一", grade: 1, stroke_count: 1, jlpt_level: 5})
       Process.sleep(5) # Ensure distinct inserted_at if tests are extremely fast
       k2 = Kanji.create!(%{character: "二", grade: 1, stroke_count: 2, jlpt_level: 5})
@@ -75,7 +75,7 @@ defmodule KumaSanKanji.Kanji.KanjiTest do
       assert length(result) == 1
     end
   end
-  
+
   describe ":count action (via count_all in code_interface)" do
     test "returns the total count of kanji" do
       # Ensure we start with a clean database
@@ -85,7 +85,7 @@ defmodule KumaSanKanji.Kanji.KanjiTest do
           Ash.destroy!(kanji)
         end)
       end
-      
+
       initial_count = Kanji.count_all!()
       assert initial_count == 0
 

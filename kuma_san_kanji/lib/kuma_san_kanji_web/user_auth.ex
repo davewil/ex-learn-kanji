@@ -2,12 +2,12 @@ defmodule KumaSanKanjiWeb.UserAuth do
   @moduledoc """
   Plug for handling user authentication via session.
   """
-  
+
   import Plug.Conn
   import Phoenix.Controller
 
   alias KumaSanKanji.Auth
-  
+
   @max_age 60 * 60 * 24 * 7 # 7 days
 
   @doc """
@@ -53,7 +53,7 @@ defmodule KumaSanKanjiWeb.UserAuth do
   def log_in_user(conn, user) do
     # Store the user ID in the session
     session_data = Auth.create_session(conn, user)
-    
+
     conn
     |> renew_session()
     |> put_session(:user_id, session_data["user_id"])

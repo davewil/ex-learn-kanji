@@ -1,0 +1,66 @@
+defmodule KumaSanKanjiWeb.ExploreLiveTest do
+  use KumaSanKanjiWeb.ConnCase, async: false
+
+  import Phoenix.LiveViewTest
+  alias KumaSanKanji.Kanji.Kanji
+
+  @endpoint KumaSanKanjiWeb.Endpoint
+
+  setup do
+    # Ensure the database is clean for each test run if needed, or manage state explicitly.
+    # For this test, we'll seed specific data.
+    :ok
+  end
+
+  describe "ExploreLive functionality" do
+    setup do
+      # Create some Kanji records for testing
+      # Ensure distinct inserted_at for reliable ordering
+      k1 = Kanji.create!(%{character: "日", grade: 1, stroke_count: 4, jlpt_level: 5})
+      Process.sleep(5) # Small delay to ensure distinct inserted_at
+      k2 = Kanji.create!(%{character: "月", grade: 1, stroke_count: 4, jlpt_level: 5})
+      Process.sleep(5)
+      k3 = Kanji.create!(%{character: "火", grade: 1, stroke_count: 4, jlpt_level: 5})
+
+      %{k1: k1, k2: k2, k3: k3}
+    end
+
+    test "displays the first kanji on mount", %{conn: conn, k1: k1} do
+      {:ok, view, _html} = live(conn, "/explore")
+
+      assert has_element?(view, "span", k1.character)
+      # Check that it's the correct LiveView module
+      assert view.module == KumaSanKanjiWeb.ExploreLive
+    end
+
+    test "cycles through kanji on 'new_kanji' event", %{conn: conn, k1: k1, k2: k2, k3: k3} do
+      {:ok, view, _html} = live(conn, "/explore")
+
+      # Initial state (k1)
+      assert has_element?(view, "span", k1.character)
+
+      # Click for next Kanji (k2)
+      view |> element("button", "Show New Kanji") |> render_click()
+      assert has_element?(view, "span", k2.character)
+
+      # Click for next Kanji (k3)
+      view |> element("button", "Show New Kanji") |> render_click()
+      assert has_element?(view, "span", k3.character)
+
+      # Click to loop back to first Kanji (k1)
+      view |> element("button", "Show New Kanji") |> render_click()
+      assert has_element?(view, "span", k1.character)
+    end
+
+    test "handles no kanji in the database gracefully" do
+      # This test requires an empty database state for Kanji
+      # Clear any existing Kanji for this specific test
+      KumaSanKanji.Repo.delete_all(Kanji)
+
+      conn = build_conn()
+      {:ok, view, _html} = live(conn, "/explore")
+
+      assert has_element?(view, "p", "No kanji data available. Please add kanji to the database.")
+    end
+  end
+end

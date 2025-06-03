@@ -2,7 +2,7 @@ defmodule KumaSanKanjiWeb.Components.Navigation do
   use Phoenix.Component
   use Phoenix.VerifiedRoutes, endpoint: KumaSanKanjiWeb.Endpoint, router: KumaSanKanjiWeb.Router
   alias Phoenix.LiveView.JS
-  
+
   def navbar(assigns) do
     ~H"""
     <header class="bg-white shadow-lg border-b-2 border-sakura" id="main-nav" phx-hook="MobileMenu">

@@ -19,15 +19,15 @@ defmodule KumaSanKanji.Accounts.User do
       argument :password, :string, allow_nil?: false, sensitive?: true
 
       validate :validate_password_length
-      
+
       change :hash_password
     end
 
     read :login do
       argument :password, :string, allow_nil?: false, sensitive?: true
-      
+
       filter expr(email == ^arg(:email))
-      
+
       prepare build(load: [:hashed_password])
       prepare :validate_password
     end
@@ -42,7 +42,7 @@ defmodule KumaSanKanji.Accounts.User do
   # Custom validation function
   def validate_password_length(changeset) do
     password = Ash.Changeset.get_argument(changeset, :password)
-    
+
     if password && String.length(password) < 8 do
       Ash.Changeset.add_error(changeset, :password, "must be at least 8 characters")
     else
@@ -54,7 +54,7 @@ defmodule KumaSanKanji.Accounts.User do
   def validate_password(changeset) do
     password = Ash.Changeset.get_argument(changeset, :password)
     hashed_password = Ash.Changeset.get_attribute(changeset, :hashed_password)
-    
+
     case Pbkdf2.verify_pass(password, hashed_password) do
       true -> changeset
       false -> Ash.Changeset.add_error(changeset, :password, "is incorrect")
@@ -64,7 +64,7 @@ defmodule KumaSanKanji.Accounts.User do
   # Custom change function
   def hash_password(changeset) do
     password = Ash.Changeset.get_argument(changeset, :password)
-    
+
     if password do
       hashed_password = Pbkdf2.hash_pwd_salt(password)
       Ash.Changeset.change_attribute(changeset, :hashed_password, hashed_password)

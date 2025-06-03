@@ -41,7 +41,7 @@ defmodule KumaSanKanjiWeb.PageLive do
           <h2 class="text-2xl font-katakana tracking-tight text-accent-blue">
             How it works
           </h2>
-          
+
           <div class="mt-4 rounded-lg border border-sakura bg-sakura-light/20 p-6">
             <ol class="list-decimal pl-6 space-y-2 font-katakana text-gray-700">
               <li>Explore new kanji characters daily.</li>
@@ -49,7 +49,7 @@ defmodule KumaSanKanjiWeb.PageLive do
               <li>Practice with example sentences.</li>
               <li>Sign up to track your progress.</li>
             </ol>
-            
+
             <div class="mt-6 flex justify-center">
               <img src="/images/bear-reading.svg" alt="Kuma-san reading" class="w-64 h-64" />
             </div>

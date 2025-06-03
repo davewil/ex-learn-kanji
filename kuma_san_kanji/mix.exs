@@ -55,12 +55,12 @@ defmodule KumaSanKanji.MixProject do
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
-      
+
       # Ash Framework dependencies
       {:ash, "~> 3.5"},
       {:ash_phoenix, "~> 2.3"},
       {:ash_sqlite, "~> 0.2.9"},
-      
+
       # Password hashing
       {:pbkdf2_elixir, "~> 2.0"}
     ]

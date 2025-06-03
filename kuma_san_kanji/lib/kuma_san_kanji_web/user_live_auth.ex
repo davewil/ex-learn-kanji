@@ -2,7 +2,7 @@ defmodule KumaSanKanjiWeb.UserLiveAuth do
   @moduledoc """
   Module for handling LiveView authentication.
   """
-  
+
   import Phoenix.Component
   import Phoenix.LiveView
 
@@ -11,14 +11,14 @@ defmodule KumaSanKanjiWeb.UserLiveAuth do
   @doc """
   Assigns the current_user to the socket assigns.
   """
-  def on_mount(:mount_current_user, _params, %{"user_id" => user_id, "token" => token} = _session, socket) 
+  def on_mount(:mount_current_user, _params, %{"user_id" => user_id, "token" => token} = _session, socket)
     when is_binary(user_id) and is_binary(token) do
     case verify_session_token(token) do
       {:ok, verified_user_id} when verified_user_id == user_id ->
         case Auth.get_user(user_id) do
-          {:ok, user} -> 
+          {:ok, user} ->
             {:cont, assign(socket, current_user: user)}
-          _ -> 
+          _ ->
             {:cont, assign(socket, current_user: nil)}
         end
       _ ->
@@ -36,9 +36,9 @@ defmodule KumaSanKanjiWeb.UserLiveAuth do
     case verify_session_token(token) do
       {:ok, verified_user_id} when verified_user_id == user_id ->
         case Auth.get_user(user_id) do
-          {:ok, user} -> 
+          {:ok, user} ->
             {:cont, assign(socket, current_user: user)}
-          _ -> 
+          _ ->
             {:halt, redirect_to_login(socket)}
         end
       _ ->
@@ -54,7 +54,7 @@ defmodule KumaSanKanjiWeb.UserLiveAuth do
   defp verify_session_token(token) do
     Phoenix.Token.verify(KumaSanKanjiWeb.Endpoint, "user auth", token, max_age: 60 * 60 * 24 * 7) # 7 days
   end
-  
+
   # Helper function for redirecting to login
   defp redirect_to_login(socket) do
     socket

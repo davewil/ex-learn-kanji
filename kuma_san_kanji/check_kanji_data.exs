@@ -3,17 +3,17 @@ alias KumaSanKanji.Kanji.Kanji
 alias KumaSanKanji.Kanji.Meaning
 
 case Ash.read(Kanji) do
-  {:ok, kanjis} -> 
+  {:ok, kanjis} ->
     IO.puts("Found #{length(kanjis)} kanji records in the database.")
-    
+
     if length(kanjis) > 0 do
       kanji = List.first(kanjis)
       IO.puts("First kanji: #{kanji.character}")
       IO.puts("ID: #{kanji.id}")
-      
+
       # Get meanings for this kanji
       {:ok, [kanji_with_meanings]} = Kanji.get_by_id(kanji.id, load: [:meanings])
-      
+
       if kanji_with_meanings.meanings && length(kanji_with_meanings.meanings) > 0 do
         meanings = Enum.map(kanji_with_meanings.meanings, & &1.value) |> Enum.join(", ")
         IO.puts("Meanings: #{meanings}")
@@ -21,8 +21,8 @@ case Ash.read(Kanji) do
         IO.puts("No meanings found for this kanji.")
       end
     end
-    
-  _ -> 
+
+  _ ->
     IO.puts("Error: Could not read kanji data.")
 end
 

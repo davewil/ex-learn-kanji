@@ -3,14 +3,14 @@ defmodule KumaSanKanjiWeb.LoginLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, 
+    {:ok,
      socket
      |> assign(:form, to_form(%{"email" => "", "password" => ""}, as: "user"))}
   end
 
   @impl true
   def handle_params(params, _uri, socket) do
-    socket = 
+    socket =
       if params["signup_success"] == "true" && params["email"] do
         socket
         |> put_flash(:info, "Account created successfully! Please log in.")
@@ -18,7 +18,7 @@ defmodule KumaSanKanjiWeb.LoginLive do
       else
         socket
       end
-    
+
     {:noreply, socket}
   end
 
@@ -33,7 +33,7 @@ defmodule KumaSanKanjiWeb.LoginLive do
         <p class="mt-3 text-lg text-zinc-600">
           Welcome back! Log in to continue your kanji learning journey.
         </p>
-        
+
         <.form
           for={@form}
           action={~p"/login"}
@@ -56,7 +56,7 @@ defmodule KumaSanKanjiWeb.LoginLive do
               />
             </div>
           </div>
-          
+
           <div>
             <label for="password" class="block text-sm font-medium text-gray-700">
               Password
@@ -71,7 +71,7 @@ defmodule KumaSanKanjiWeb.LoginLive do
               />
             </div>
           </div>
-          
+
           <div>
             <button
               type="submit"
@@ -80,7 +80,7 @@ defmodule KumaSanKanjiWeb.LoginLive do
               Log in
             </button>
           </div>
-          
+
           <div class="text-center text-sm">
             <p class="text-gray-600">
               Don't have an account?

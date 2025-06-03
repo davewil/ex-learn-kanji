@@ -18,7 +18,7 @@ defmodule KumaSanKanji.Auth do
   """
   def get_user(user_id) do
     require Ash.Query
-    
+
     User
     |> Ash.Query.filter(id == ^user_id)
     |> Ash.read_one()
@@ -31,7 +31,7 @@ defmodule KumaSanKanji.Auth do
   def create_session(_conn, user) do
     # Generate a random token for the session
     token = Phoenix.Token.sign(KumaSanKanjiWeb.Endpoint, "user auth", user.id)
-    
+
     %{
       "user_id" => user.id,
       "token" => token

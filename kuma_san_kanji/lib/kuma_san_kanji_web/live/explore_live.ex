@@ -45,7 +45,7 @@ defmodule KumaSanKanjiWeb.ExploreLive do
   end
   defp get_kanji_by_offset(offset) do
     case Kanji.by_offset(offset) do
-      {:ok, [kanji | _]} -> 
+      {:ok, [kanji | _]} ->
         # Load relationships
         case Kanji.get_by_id(kanji.id, load: [:meanings, :pronunciations, :example_sentences]) do
           {:ok, [loaded_kanji]} -> {:ok, loaded_kanji}
@@ -54,7 +54,7 @@ defmodule KumaSanKanjiWeb.ExploreLive do
       {:ok, []} -> {:error, :no_kanji_at_offset}
       error -> error
     end  end
-  
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -66,10 +66,10 @@ defmodule KumaSanKanjiWeb.ExploreLive do
         <p class="mt-3 text-lg font-katakana text-gray-700">
           Learn and discover Japanese kanji characters with Kuma-san! Click the button below to see a new kanji.
         </p>
-        
+
         <div class="mt-6 mb-8">
-          <button 
-            phx-click="new_kanji" 
+          <button
+            phx-click="new_kanji"
             class="btn-accent rounded-md px-3.5 py-2.5 text-sm font-katakana font-medium"
           >
             Show New Kanji
@@ -78,7 +78,7 @@ defmodule KumaSanKanjiWeb.ExploreLive do
           <div class="p-6 text-center border-b border-sakura bg-sakura-light">
             <span class="kanji-display text-8xl font-bold"><%= @kanji.character %></span>
           </div>
-          
+
           <div class="p-6 bg-white text-gray-700">
             <div class="grid grid-cols-2 gap-4 mb-6">
               <div>

@@ -4,7 +4,7 @@ defmodule KumaSanKanjiWeb.SignupLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, 
+    {:ok,
      socket
      |> assign(:form, to_form(%{"email" => "", "username" => "", "password" => ""}))
      |> assign(:form_error, nil)}
@@ -12,7 +12,7 @@ defmodule KumaSanKanjiWeb.SignupLive do
 
   @impl true
   def handle_event("validate", %{"email" => email, "username" => username, "password" => password}, socket) do
-    {:noreply, 
+    {:noreply,
      assign(socket, :form, to_form(%{"email" => email, "username" => username, "password" => password}))}
   end
   @impl true
@@ -34,8 +34,8 @@ defmodule KumaSanKanjiWeb.SignupLive do
             end)
           _ -> "An unexpected error occurred. Please try again."
         end
-        
-        {:noreply, 
+
+        {:noreply,
          socket
          |> assign(:form_error, error_msg)}
     end
@@ -52,7 +52,7 @@ defmodule KumaSanKanjiWeb.SignupLive do
         <p class="mt-3 text-lg text-zinc-600">
           Create an account to track your progress and save your favorite kanji.
         </p>
-        
+
         <.form
           for={@form}
           phx-change="validate"
@@ -62,7 +62,7 @@ defmodule KumaSanKanjiWeb.SignupLive do
           <div :if={@form_error} class="bg-red-50 border border-red-200 rounded-md p-4 text-sm text-red-600">
             <%= @form_error %>
           </div>
-          
+
           <div>
             <label for="email" class="block text-sm font-medium text-gray-700">
               Email address
@@ -78,7 +78,7 @@ defmodule KumaSanKanjiWeb.SignupLive do
               />
             </div>
           </div>
-          
+
           <div>
             <label for="username" class="block text-sm font-medium text-gray-700">
               Username
@@ -94,7 +94,7 @@ defmodule KumaSanKanjiWeb.SignupLive do
               />
             </div>
           </div>
-          
+
           <div>
             <label for="password" class="block text-sm font-medium text-gray-700">
               Password
@@ -112,7 +112,7 @@ defmodule KumaSanKanjiWeb.SignupLive do
               <p class="mt-2 text-xs text-gray-500">Password must be at least 8 characters</p>
             </div>
           </div>
-          
+
           <div>
             <button
               type="submit"
@@ -121,7 +121,7 @@ defmodule KumaSanKanjiWeb.SignupLive do
               Create account
             </button>
           </div>
-          
+
           <div class="text-center text-sm">
             <p class="text-gray-600">
               Already have an account?
