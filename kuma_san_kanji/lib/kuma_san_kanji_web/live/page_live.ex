@@ -3,7 +3,10 @@ defmodule KumaSanKanjiWeb.PageLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, socket}
+    # Check if user is authenticated
+    is_authenticated = socket.assigns[:current_user] != nil
+
+    {:ok, assign(socket, is_authenticated: is_authenticated)}
   end
 
   @impl true
@@ -15,7 +18,7 @@ defmodule KumaSanKanjiWeb.PageLive do
           Kuma-san Kanji <span class="text-sakura-dark">漢字</span>
         </h1>
         <p class="mt-4 text-lg font-katakana text-gray-700">
-          Welcome to Kuma-san Kanji, your friendly bear guide to learning Japanese Kanji characters!
+          Welcome <%= if @is_authenticated, do: "back", else: "" %> to Kuma-san Kanji, your friendly bear guide to learning Japanese Kanji characters!
         </p>
         <div class="mt-10 flex items-center gap-x-6">
           <.link
@@ -24,18 +27,25 @@ defmodule KumaSanKanjiWeb.PageLive do
           >
             Explore Kanji
           </.link>
-          <.link
-            navigate={~p"/signup"}
-            class="btn-sakura rounded-md px-3.5 py-2.5 text-sm font-katakana font-medium"
-          >
-            Sign Up
-          </.link>
-          <.link
-            navigate={~p"/login"}
-            class="rounded-md border border-accent-blue px-3.5 py-2.5 text-sm font-katakana font-medium text-accent-blue shadow-sm hover:bg-gray-50"
-          >
-            Log In
-          </.link>        </div>
+          <%= if @is_authenticated do %>
+            <p class="text-sm font-katakana text-gray-600">
+              You're logged in as <span class="font-bold text-accent-blue"><%= @current_user.username %></span>
+            </p>
+          <% else %>
+            <.link
+              navigate={~p"/signup"}
+              class="btn-sakura rounded-md px-3.5 py-2.5 text-sm font-katakana font-medium"
+            >
+              Sign Up
+            </.link>
+            <.link
+              navigate={~p"/login"}
+              class="rounded-md border border-accent-blue px-3.5 py-2.5 text-sm font-katakana font-medium text-accent-blue shadow-sm hover:bg-gray-50"
+            >
+              Log In
+            </.link>
+          <% end %>
+        </div>
 
         <div class="mt-10">
           <h2 class="text-2xl font-katakana tracking-tight text-accent-blue">

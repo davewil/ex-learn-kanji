@@ -8,8 +8,6 @@ defmodule KumaSanKanjiWeb.UserAuth do
 
   alias KumaSanKanji.Auth
 
-  @max_age 60 * 60 * 24 * 7 # 7 days
-
   @doc """
   A plug that loads the current user from the session.
   """
@@ -18,14 +16,9 @@ defmodule KumaSanKanjiWeb.UserAuth do
     token = get_session(conn, :token)
 
     if user_id && token do
-      case verify_session_token(token) do
-        {:ok, verified_user_id} when verified_user_id == user_id ->
-          case Auth.get_user(user_id) do
-            {:ok, user} -> assign(conn, :current_user, user)
-            _ -> assign(conn, :current_user, nil)
-          end
-        _ ->
-          assign(conn, :current_user, nil)
+      case Auth.get_user_from_session(user_id, token) do
+        {:ok, user} -> assign(conn, :current_user, user)
+        {:error, _} -> assign(conn, :current_user, nil)
       end
     else
       assign(conn, :current_user, nil)
@@ -41,6 +34,7 @@ defmodule KumaSanKanjiWeb.UserAuth do
       conn
     else
       conn
+      |> fetch_flash()
       |> put_flash(:error, "You must log in to access this page.")
       |> redirect(to: "/login")
       |> halt()
@@ -75,10 +69,5 @@ defmodule KumaSanKanjiWeb.UserAuth do
     conn
     |> configure_session(renew: true)
     |> clear_session()
-  end
-
-  # Helper to verify the session token
-  defp verify_session_token(token) do
-    Phoenix.Token.verify(KumaSanKanjiWeb.Endpoint, "user auth", token, max_age: @max_age)
   end
 end

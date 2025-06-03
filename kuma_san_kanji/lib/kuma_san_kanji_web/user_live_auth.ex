@@ -13,15 +13,10 @@ defmodule KumaSanKanjiWeb.UserLiveAuth do
   """
   def on_mount(:mount_current_user, _params, %{"user_id" => user_id, "token" => token} = _session, socket)
     when is_binary(user_id) and is_binary(token) do
-    case verify_session_token(token) do
-      {:ok, verified_user_id} when verified_user_id == user_id ->
-        case Auth.get_user(user_id) do
-          {:ok, user} ->
-            {:cont, assign(socket, current_user: user)}
-          _ ->
-            {:cont, assign(socket, current_user: nil)}
-        end
-      _ ->
+    case Auth.get_user_from_session(user_id, token) do
+      {:ok, user} ->
+        {:cont, assign(socket, current_user: user)}
+      {:error, _} ->
         {:cont, assign(socket, current_user: nil)}
     end
   end
@@ -33,15 +28,10 @@ defmodule KumaSanKanjiWeb.UserLiveAuth do
   # Ensures user is authenticated. If not, redirects to login page.
   def on_mount(:ensure_authenticated, _params, %{"user_id" => user_id, "token" => token} = _session, socket)
     when is_binary(user_id) and is_binary(token) do
-    case verify_session_token(token) do
-      {:ok, verified_user_id} when verified_user_id == user_id ->
-        case Auth.get_user(user_id) do
-          {:ok, user} ->
-            {:cont, assign(socket, current_user: user)}
-          _ ->
-            {:halt, redirect_to_login(socket)}
-        end
-      _ ->
+    case Auth.get_user_from_session(user_id, token) do
+      {:ok, user} ->
+        {:cont, assign(socket, current_user: user)}
+      {:error, _} ->
         {:halt, redirect_to_login(socket)}
     end
   end
@@ -50,15 +40,15 @@ defmodule KumaSanKanjiWeb.UserLiveAuth do
     {:halt, redirect_to_login(socket)}
   end
 
-  # Helper function for verifying token
-  defp verify_session_token(token) do
-    Phoenix.Token.verify(KumaSanKanjiWeb.Endpoint, "user auth", token, max_age: 60 * 60 * 24 * 7) # 7 days
-  end
-
   # Helper function for redirecting to login
   defp redirect_to_login(socket) do
-    socket
-    |> put_flash(:error, "You must log in to access this page.")
-    |> redirect(to: "/login")
+    socket = 
+      if Map.has_key?(socket, :flash) do
+        put_flash(socket, :error, "You must log in to access this page.")
+      else
+        socket
+      end
+    
+    redirect(socket, to: "/login")
   end
 end

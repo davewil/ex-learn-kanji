@@ -1,26 +1,34 @@
 defmodule KumaSanKanjiWeb.ExploreLive do
   use KumaSanKanjiWeb, :live_view
   alias KumaSanKanji.Kanji.Kanji
+
   @impl true
   def mount(_params, _session, socket) do
+    # Determine if the user is logged in
+    is_authenticated = socket.assigns[:current_user] != nil
+
     case Kanji.count_all!() do
       total_kanji when total_kanji > 0 ->
         current_offset = 0
+
         case get_kanji_by_offset(current_offset) do
           {:ok, kanji} ->
             {:ok,
              assign(socket,
                kanji: kanji,
                current_offset: current_offset,
-               total_kanji: total_kanji
+               total_kanji: total_kanji,
+               is_authenticated: is_authenticated
              )}
+
           _ ->
             # Should not happen if count > 0, but handle defensively
-            {:ok, assign(socket, kanji: nil, current_offset: 0, total_kanji: 0)}
+            {:ok, assign(socket, kanji: nil, current_offset: 0, total_kanji: 0, is_authenticated: is_authenticated)}
         end
+
       _ ->
         # No kanji in the database
-        {:ok, assign(socket, kanji: nil, current_offset: 0, total_kanji: 0)}
+        {:ok, assign(socket, kanji: nil, current_offset: 0, total_kanji: 0, is_authenticated: is_authenticated)}
     end
   end
 
@@ -39,10 +47,13 @@ defmodule KumaSanKanjiWeb.ExploreLive do
     case get_kanji_by_offset(new_offset) do
       {:ok, kanji} ->
         {:noreply, assign(socket, kanji: kanji, current_offset: new_offset)}
+
       _ ->
         # Error fetching, or no kanji, keep current state or show error
-        {:noreply, socket}    end
+        {:noreply, socket}
+    end
   end
+
   defp get_kanji_by_offset(offset) do
     case Kanji.by_offset(offset) do
       {:ok, [kanji | _]} ->
@@ -51,9 +62,14 @@ defmodule KumaSanKanjiWeb.ExploreLive do
           {:ok, [loaded_kanji]} -> {:ok, loaded_kanji}
           error -> error
         end
-      {:ok, []} -> {:error, :no_kanji_at_offset}
-      error -> error
-    end  end
+
+      {:ok, []} ->
+        {:error, :no_kanji_at_offset}
+
+      error ->
+        error
+    end
+  end
 
   @impl true
   def render(assigns) do
