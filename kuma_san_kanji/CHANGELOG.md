@@ -1,5 +1,11 @@
 ﻿# Changelog
 
+## June 12, 2025
+
+- Resolved `WithClauseError` in `KumaSanKanji.Accounts.User`'s `sign_up` action.
+- Corrected the return type of the `validate_password_length/2` custom change function to return the changeset directly, or the changeset with an error, instead of an `{:ok, changeset}` tuple.
+- Updated the `hash_password/2` custom change function to correctly check for changeset validity using `changeset.valid?` before proceeding with password hashing and to return the changeset directly.
+
 ## June 3, 2025
 
 ### Additional Authentication Fixes

@@ -18,6 +18,7 @@ defmodule KumaSanKanji.Accounts.User do
       accept [:email, :username]
       argument :password, :string, allow_nil?: false, sensitive?: true
 
+      change &__MODULE__.validate_password_length/2
       change &__MODULE__.hash_password/2
     end
 
@@ -25,9 +26,13 @@ defmodule KumaSanKanji.Accounts.User do
       argument :email, :ci_string, allow_nil?: false
       argument :password, :string, allow_nil?: false, sensitive?: true
 
+      # Use a simple filter on email
       filter expr(email == ^arg(:email))
 
-      prepare build(load: [:hashed_password])
+      # Load the hashed_password field for password verification in Auth module
+      prepare fn query, _ ->
+        Ash.Query.load(query, :hashed_password)
+      end
     end
   end
 
@@ -37,16 +42,32 @@ defmodule KumaSanKanji.Accounts.User do
     define :login, args: [:email, :password], action: :login
   end
 
-  # Custom change function to hash password
-  # Must have arity 2 for Ash DSL
-  def hash_password(changeset, _context) do
+  # Custom validation function for password length
+  def validate_password_length(changeset, _context) do
     password = Ash.Changeset.get_argument(changeset, :password)
 
-    if password do
-      hashed_password = Pbkdf2.hash_pwd_salt(password)
-      Ash.Changeset.change_attribute(changeset, :hashed_password, hashed_password)
-    else
+    cond do
+      is_binary(password) && String.length(password) < 8 ->
+        Ash.Changeset.add_error(changeset, field: :password, message: "password must be at least 8 characters")
+      true -> # Covers password being nil (which should be caught by allow_nil?: false), valid length, or not a binary
+        changeset
+    end
+  end
+
+  # Custom function to hash password during sign up
+  def hash_password(changeset, _context) do
+    # If the changeset is already invalid (e.g., from validate_password_length), just pass it through.
+    if not changeset.valid? do
       changeset
+    else
+      password = Ash.Changeset.get_argument(changeset, :password)
+      if is_nil(password) do
+        # This case should ideally be prevented by `allow_nil?: false` on the argument.
+        changeset
+      else
+        hashed_password = Pbkdf2.hash_pwd_salt(password)
+        Ash.Changeset.force_change_attribute(changeset, :hashed_password, hashed_password)
+      end
     end
   end
 
