@@ -13,35 +13,16 @@ defmodule KumaSanKanji.Auth do
   Returns `{:ok, user}` if successful, otherwise `{:error, reason}`.
   """
   def login(email, password) do
-    # Perform the login by email
     case User.login(email, password) do
-      {:ok, nil} -> 
-        # Handle case where no user is found
-        {:error, :not_found}
-        
-      {:ok, []} -> 
-        # Handle empty list result
-        {:error, :not_found}
-        
-      {:ok, [user | _]} ->
-        # Handle list result - verify password
-        if user.hashed_password && Pbkdf2.verify_pass(password, user.hashed_password) do
-          {:ok, user}
-        else
+      {:ok, [%User{} = user]} -> {:ok, user}
+      {:ok, []} -> {:error, :not_found}
+      {:error, %Ash.Error.Invalid{errors: errors}} ->
+        if Enum.any?(errors, fn err -> Map.get(err, :field) == :password end) do
           {:error, :invalid_credentials}
-        end
-        
-      {:ok, user} ->
-        # Handle single user result - verify password
-        if user.hashed_password && Pbkdf2.verify_pass(password, user.hashed_password) do
-          {:ok, user}
         else
-          {:error, :invalid_credentials}
+          {:error, %Ash.Error.Invalid{errors: errors}}
         end
-        
-      error -> 
-        # Pass through other errors
-        error
+      {:error, _} = err -> err
     end
   end
 
@@ -52,13 +33,10 @@ defmodule KumaSanKanji.Auth do
   def get_user(user_id) do
     require Ash.Query
 
-    result = User
-    |> Ash.Query.filter(id == ^user_id)
-    |> Ash.read_one()
-    
-    case result do
+    case User |> Ash.Query.filter(id == ^user_id) |> Ash.read_one() do
       {:ok, nil} -> {:error, :not_found}
-      other -> other
+      {:ok, user} -> {:ok, user}
+      {:error, _} = err -> err
     end
   end
 

@@ -8,6 +8,8 @@ defmodule KumaSanKanjiWeb.UserAuth do
 
   alias KumaSanKanji.Auth
 
+  @max_age 60 * 60 * 24 * 7 # 7 days
+
   @doc """
   A plug that loads the current user from the session.
   """
@@ -69,5 +71,10 @@ defmodule KumaSanKanjiWeb.UserAuth do
     conn
     |> configure_session(renew: true)
     |> clear_session()
+  end
+
+  # Helper to verify the session token
+  defp verify_session_token(token) do
+    Auth.verify_session_token(token)
   end
 end

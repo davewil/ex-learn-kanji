@@ -4,62 +4,28 @@ defmodule KumaSanKanjiWeb.SignupLive do
 
   @impl true
   def mount(_params, _session, socket) do
+    form = AshPhoenix.Form.for_create(User, :sign_up, as: "user")
     {:ok,
      socket
-     |> assign(:form, to_form(%{"email" => "", "username" => "", "password" => ""}))
-     |> assign(:form_error, nil)}
+     |> assign(:ash_form, form)
+     |> assign(:form, to_form(form))}
   end
 
   @impl true
-  def handle_event("validate", %{"email" => email, "username" => username, "password" => password}, socket) do
-    {:noreply,
-     assign(socket, :form, to_form(%{"email" => email, "username" => username, "password" => password}))}
+  def handle_event("validate", %{"user" => user_params}, socket) do
+    form = AshPhoenix.Form.validate(socket.assigns.ash_form, user_params)
+    {:noreply, socket |> assign(:ash_form, form) |> assign(:form, to_form(form))}
   end
+
   @impl true
-  def handle_event("signup", %{"email" => email, "username" => username, "password" => password}, socket) do
-    # Validate email format
-    with true <- is_valid_email?(email),
-         # Validate password strength
-         true <- is_valid_password?(password),
-         # Attempt to create user
-         {:ok, _user} <- User.sign_up(email, username, password) do
-      # Redirect to login
-      {:noreply,
-       socket
-       |> push_navigate(to: "/login?signup_success=true&email=" <> URI.encode_www_form(email))}
-    else
-      {:error, :invalid_email} ->
-        {:noreply, socket |> assign(:form_error, "Please enter a valid email address")}
-
-      {:error, :password_too_weak} ->
-        {:noreply, socket |> assign(:form_error, "Password must be at least 8 characters and include a number")}
-
-      {:error, error} ->
-        error_msg = format_error(error)
-        {:noreply, socket |> assign(:form_error, error_msg)}
-    end
-  end
-
-  defp is_valid_email?(email) do
-    email_regex = ~r/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/
-    if Regex.match?(email_regex, email), do: true, else: {:error, :invalid_email}
-  end
-
-  defp is_valid_password?(password) do
-    if String.length(password) >= 8 and String.match?(password, ~r/[0-9]/),
-      do: true,
-      else: {:error, :password_too_weak}
-  end
-
-  defp format_error(error) do
-    case error do
-      %{errors: errors} when is_list(errors) ->
-        Enum.map_join(errors, ", ", fn
-          {field, {msg, _}} -> "#{field}: #{msg}"
-          {field, msg} when is_binary(msg) -> "#{field}: #{msg}"
-          error -> inspect(error)
-        end)
-      _ -> "An unexpected error occurred. Please try again."
+  def handle_event("signup", %{"user" => user_params}, socket) do
+    case AshPhoenix.Form.submit(socket.assigns.ash_form, params: user_params) do
+      {:ok, _user} ->
+        {:noreply,
+         socket
+         |> push_navigate(to: "/login?signup_success=true&email=" <> URI.encode_www_form(user_params["email"]))}
+      {:error, form} ->
+        {:noreply, socket |> assign(:ash_form, form) |> assign(:form, to_form(form))}
     end
   end
 
@@ -77,63 +43,17 @@ defmodule KumaSanKanjiWeb.SignupLive do
 
         <.form
           for={@form}
+          as={:user}
           phx-change="validate"
           phx-submit="signup"
           class="mt-8 space-y-6"
         >
-          <div :if={@form_error} class="bg-red-50 border border-sakura rounded-md p-4 text-sm font-katakana text-red-600">
-            <%= @form_error %>
-          </div>
+          <.input field={@form[:email]} label="Email address" required class="block w-full rounded-md border-gray-300 shadow-sm focus:border-accent-blue focus:ring-accent-blue sm:text-sm" placeholder="you@example.com" />
 
-          <div>
-            <label for="email" class="block text-sm font-medium font-katakana text-gray-700">
-              Email address
-            </label>
-            <div class="mt-1">
-              <input
-                type="email"
-                id="email"
-                name="email"
-                required
-                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-accent-blue focus:ring-accent-blue sm:text-sm"
-                placeholder="you@example.com"
-              />
-            </div>
-          </div>
+          <.input field={@form[:username]} label="Username" required class="block w-full rounded-md border-gray-300 shadow-sm focus:border-accent-blue focus:ring-accent-blue sm:text-sm" placeholder="kuma_student" />
 
-          <div>
-            <label for="username" class="block text-sm font-medium font-katakana text-gray-700">
-              Username
-            </label>
-            <div class="mt-1">
-              <input
-                type="text"
-                id="username"
-                name="username"
-                required
-                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-accent-blue focus:ring-accent-blue sm:text-sm"
-                placeholder="kuma_student"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label for="password" class="block text-sm font-medium font-katakana text-gray-700">
-              Password
-            </label>
-            <div class="mt-1">
-              <input
-                type="password"
-                id="password"
-                name="password"
-                required
-                minlength="8"
-                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-accent-blue focus:ring-accent-blue sm:text-sm"
-                placeholder="Minimum 8 characters"
-              />
-              <p class="mt-2 text-xs text-gray-500 font-katakana">Password must be at least 8 characters and include a number</p>
-            </div>
-          </div>
+          <.input field={@form[:password]} label="Password" type="password" required minlength="8" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-accent-blue focus:ring-accent-blue sm:text-sm" placeholder="Minimum 8 characters" />
+          <p class="mt-2 text-xs text-gray-500 font-katakana">Password must be at least 8 characters and include a number</p>
 
           <div>
             <button

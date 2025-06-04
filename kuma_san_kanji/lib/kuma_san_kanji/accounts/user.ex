@@ -22,16 +22,23 @@ defmodule KumaSanKanji.Accounts.User do
       change &__MODULE__.hash_password/2
     end
 
-    read :login do
+    action :login, :struct do
+      constraints instance_of: __MODULE__
       argument :email, :ci_string, allow_nil?: false
       argument :password, :string, allow_nil?: false, sensitive?: true
 
-      # Use a simple filter on email
-      filter expr(email == ^arg(:email))
-
-      # Load the hashed_password field for password verification in Auth module
-      prepare fn query, _ ->
-        Ash.Query.load(query, :hashed_password)
+      run fn input, _context ->
+        query = Ash.Query.filter(__MODULE__, email: input.arguments.email)
+        case Ash.read_one(query) do
+          {:ok, user} when not is_nil(user) ->
+            if Pbkdf2.verify_pass(input.arguments.password, user.hashed_password) do
+              {:ok, user}
+            else
+              {:error, :invalid_password}
+            end
+          _ ->
+            {:error, :invalid_email}
+        end
       end
     end
   end
@@ -42,32 +49,39 @@ defmodule KumaSanKanji.Accounts.User do
     define :login, args: [:email, :password], action: :login
   end
 
-  # Custom validation function for password length
+  # Custom validation function
   def validate_password_length(changeset, _context) do
     password = Ash.Changeset.get_argument(changeset, :password)
 
-    cond do
-      is_binary(password) && String.length(password) < 8 ->
-        Ash.Changeset.add_error(changeset, field: :password, message: "password must be at least 8 characters")
-      true -> # Covers password being nil (which should be caught by allow_nil?: false), valid length, or not a binary
-        changeset
+    if password && String.length(password) < 8 do
+      Ash.Changeset.add_error(changeset, :password, "must be at least 8 characters")
+    else
+      changeset
     end
   end
 
-  # Custom function to hash password during sign up
-  def hash_password(changeset, _context) do
-    # If the changeset is already invalid (e.g., from validate_password_length), just pass it through.
-    if not changeset.valid? do
+  # Custom validation function for login
+  def validate_password(changeset, _context) do
+    password = Ash.Changeset.get_argument(changeset, :password)
+    hashed_password = Ash.Changeset.get_attribute(changeset, :hashed_password)
+
+    if Pbkdf2.verify_pass(password, hashed_password) do
       changeset
     else
-      password = Ash.Changeset.get_argument(changeset, :password)
-      if is_nil(password) do
-        # This case should ideally be prevented by `allow_nil?: false` on the argument.
-        changeset
-      else
-        hashed_password = Pbkdf2.hash_pwd_salt(password)
-        Ash.Changeset.force_change_attribute(changeset, :hashed_password, hashed_password)
-      end
+      changeset = Ash.Changeset.add_error(changeset, :password, "is incorrect")
+      %{changeset | valid?: false}
+    end
+  end
+
+  # Custom change function
+  def hash_password(changeset, _context) do
+    password = Ash.Changeset.get_argument(changeset, :password)
+
+    if password do
+      hashed_password = Pbkdf2.hash_pwd_salt(password)
+      Ash.Changeset.change_attribute(changeset, :hashed_password, hashed_password)
+    else
+      changeset
     end
   end
 

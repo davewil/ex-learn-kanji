@@ -1,37 +1,14 @@
 ﻿# Changelog
 
-## June 12, 2025
+## June 4, 2025
 
-- Resolved `WithClauseError` in `KumaSanKanji.Accounts.User`'s `sign_up` action.
-- Corrected the return type of the `validate_password_length/2` custom change function to return the changeset directly, or the changeset with an error, instead of an `{:ok, changeset}` tuple.
-- Updated the `hash_password/2` custom change function to correctly check for changeset validity using `changeset.valid?` before proceeding with password hashing and to return the changeset directly.
+### Ash Framework Form Integration Fixed
 
-## June 3, 2025
-
-### Additional Authentication Fixes
-
-- Redesigned authentication approach to separate concerns between User resource and Auth module
-- Simplified User.login action to only focus on retrieving user data with hashed_password
-- Enhanced Auth.login function to handle password verification separately from data retrieval
-- Added comprehensive handling for various return patterns (nil, empty list, single user, list of users)
-- Fixed incorrect password validation by moving password checking logic to Auth module
-- Improved error messages to be more consistent and user-friendly
-- Eliminated DSL errors by using simpler action configurations in Ash resources
-- Resolved compilation issues with manual, change, and validate functions
-
-## June 2, 2025
-
-### Authentication Fixes
-
-- Fixed `validate_password_length/2` custom change function to properly validate password length without using undefined `validate_change/3` function
-- Fixed `hash_password/2` custom change function to implement proper password hashing using Pbkdf2 directly
-- Added missing `validate_password_on_login/2` function for the login action to authenticate users properly
-- Enhanced error handling in password-related functions
-- Fixed login action to properly use Ash.Query.load instead of the build preparator, which was causing errors in the tests
-- Simplified action preparation code to avoid parameter manipulation issues
-- Fixed UserLiveAuth to safely handle flash messages by checking if the socket supports them
-- Updated UserAuth plug to fetch flash before using it to avoid ArgumentError
-- Fixed get_user function to properly return error when user doesn't exist
+- **Fixed AshPhoenix.Form integration** - Resolved compilation errors with undefined `for_change/2` function
+- **Updated signup form to use proper AshPhoenix.Form API** - Using `for_create/3` and converting to Phoenix forms with `to_form/1`
+- **Fixed form protocol implementation** - Resolved Access behaviour error by wrapping AshPhoenix.Form in Phoenix form
+- **Removed deprecated function calls** - Cleaned up unused `format_error` and old changeset-based approach
+- **Improved form validation** - Proper integration between AshPhoenix.Form validation and Phoenix LiveView
 
 ## June 10, 2025
 
@@ -95,6 +72,30 @@
   - Tono-kun (male black and tan shiba inu)
   - Hime-chan (female red shiba inu with bow accessory)
 
+## June 2, 2025
+
+### Styling Refinements
+
+- Removed neon colors throughout the application as requested
+- Updated color palette to use more subdued, elegant oklch colors
+- Replaced "accent" colors (blue, pink, purple, green, yellow) with softer variants
+- Enhanced typography with consistent Katakana-inspired font usage
+- Improved overall UI consistency with a lighter color theme
+- Fixed kanji data display by seeding the development database
+- Applied consistent styling to both home page and explore page
+- Updated button styles across all pages to match new design system
+
+### Test Improvements
+
+- Fixed implementation for all test files:
+  - `explore_live_test.exs`: Now uses seeded data instead of creating test records
+  - `kanji_test.exs`: Modified to work with pre-seeded database
+  - `example_sentence_test.exs`: Fixed to work properly with database constraints
+- Properly configured database connection handling in tests:
+  - Updated `conn_case.ex` to ensure database sandbox is set up correctly
+  - Modified `test_helper.exs` to initialize Ecto sandbox mode
+- All tests now pass successfully with the seeded test database
+
 ### Bug Fixes
 
 - Fixed database connection issues in LiveView tests
@@ -147,23 +148,9 @@
 - Add tests for PageController and other application components
 - Implement end-to-end testing
 
-## June 3, 2025
-- Fixed a compilation error in `signup_live.ex` by removing an invalid code block delimiter (```), which was causing a syntax error.
-- Verified successful compilation with `mix compile`.
+## 2025-06-03
+- Fixed issue with `mix deps.get` by running the command in the correct directory (`kuma_san_kanji/`).
 
-## June 11, 2025
-
-- Fixed Ash custom change function registration for password validation: now uses `&__MODULE__.validate_password_length/2` in the `sign_up` action. This resolves all related test failures.
-- Fixed Ash custom change function registration for password hashing: now uses `&__MODULE__.hash_password/2` in the `sign_up` action, and the `hash_password/2` function now accepts two arguments. This resolves all related test failures.
-- Corrected `UndefinedFunctionError` for `validate_password_length` and `hash_password` custom changes in `KumaSanKanji.Accounts.User` resource by using `&__MODULE__.function_name/2` syntax and ensuring correct function arity.
-- Refactored the `login` action in `KumaSanKanji.Accounts.User`:
-    - Explicitly defined the `:email` argument.
-    - Replaced `prepare :validate_password` with a `build` preparer that loads `:hashed_password`, passes the action's `:password` argument into a changeset, and then applies a new `validate_password_on_login/2` change function.
-    - The `validate_password_on_login/2` function correctly compares the input password with the stored hash and adds an error to the changeset if verification fails.
-    - Removed the old `validate_password/1` function.
-
-## 2024-06-09
-- Fixed custom Ash validation function `validate_password_length/2` to return `{:ok, changeset}` or `{:error, [error]}` as required by Ash, resolving `WithClauseError` in authentication tests.
-- Ensured secure input validation and error handling for user sign up.
-- Updated Ash DSL to use fully qualified function references for custom validation and change functions.
-- Removed unused validation function for clarity.
+## 2025-06-04
+- Fixed compilation error in `KumaSanKanji.Accounts.User` by replacing invalid `manual :login` action with a generic Ash action using `action :login, :struct do ... end` and a `run` block, following Ash documentation.
+- Re-seeded the database using priv/repo/seeds.exs.
