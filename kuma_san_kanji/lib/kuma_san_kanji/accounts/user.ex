@@ -28,6 +28,7 @@ defmodule KumaSanKanji.Accounts.User do
       argument :password, :string, allow_nil?: false, sensitive?: true
 
       run fn input, _context ->
+        require Ash.Query
         query = Ash.Query.filter(__MODULE__, email: input.arguments.email)
         case Ash.read_one(query) do
           {:ok, user} when not is_nil(user) ->

@@ -42,15 +42,7 @@ defmodule KumaSanKanjiWeb.UserLiveAuth do
 
   # Helper function for redirecting to login
   defp redirect_to_login(socket) do
-    socket =
-      if Map.has_key?(socket.assigns, :flash) do
-        socket
-      else
-        assign(socket, :flash, %{})
-      end
-
     socket
-    |> put_flash(:error, "You must log in to access this page.")
-    |> redirect(to: "/login")
+    |> redirect(to: "/login", flash: %{error: "You must log in to access this page."})
   end
 end

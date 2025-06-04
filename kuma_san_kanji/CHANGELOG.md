@@ -2,6 +2,16 @@
 
 ## June 4, 2025
 
+### Test Fixes and Authentication Improvements
+
+- **Fixed Ash.Query macro usage** - Added `require Ash.Query` statements where macros are used
+- **Fixed LiveView flash handling** - Updated user authentication to use redirect with flash options instead of direct assignment
+- **Improved error handling** - Added proper pattern matching for login return values
+- **Code cleanup** - Fixed unused variables and imports in test modules
+- **Enhanced maintainability** - Removed unnecessary code in user_live_auth module
+
+## June 4, 2025
+
 ### Ash Framework Form Integration Fixed
 
 - **Fixed AshPhoenix.Form integration** - Resolved compilation errors with undefined `for_change/2` function

@@ -13,7 +13,10 @@ defmodule KumaSanKanji.Auth do
   Returns `{:ok, user}` if successful, otherwise `{:error, reason}`.
   """
   def login(email, password) do
+    require Ash.Query
+    
     case User.login(email, password) do
+      {:ok, %User{} = user} -> {:ok, user}
       {:ok, [%User{} = user]} -> {:ok, user}
       {:ok, []} -> {:error, :not_found}
       {:error, %Ash.Error.Invalid{errors: errors}} ->

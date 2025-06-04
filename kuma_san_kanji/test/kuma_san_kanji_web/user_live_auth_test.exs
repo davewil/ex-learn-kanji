@@ -1,6 +1,5 @@
 defmodule KumaSanKanjiWeb.UserLiveAuthTest do
   use KumaSanKanjiWeb.ConnCase, async: true
-  import Phoenix.LiveViewTest
 
   alias KumaSanKanji.Accounts.User
   alias KumaSanKanji.Auth
@@ -14,14 +13,14 @@ defmodule KumaSanKanjiWeb.UserLiveAuthTest do
       %{user: user, session_data: session_data}
     end
 
-    test "assigns current_user if session is valid", %{conn: conn, user: user, session_data: session_data} do
+    test "assigns current_user if session is valid", %{user: user, session_data: session_data} do
       session = %{"user_id" => session_data["user_id"], "token" => session_data["token"]}
       {:cont, new_socket} = UserLiveAuth.on_mount(:mount_current_user, %{}, session, %Phoenix.LiveView.Socket{})
 
       assert new_socket.assigns.current_user.id == user.id
     end
 
-    test "assigns nil if session is invalid", %{conn: conn} do
+    test "assigns nil if session is invalid", %{} do
       invalid_session = %{"user_id" => Ecto.UUID.generate(), "token" => "invalid_token"}
 
       {:cont, new_socket} = UserLiveAuth.on_mount(:mount_current_user, %{}, invalid_session, %Phoenix.LiveView.Socket{})
