@@ -14,27 +14,41 @@ defmodule KumaSanKanjiWeb.Components.Navigation do
                 Kuma-san Kanji <span class="text-sakura-dark">漢字</span>
               </.link>
             </div>
+            
             <div class="hidden md:ml-6 md:flex md:space-x-8">
               <.link
                 navigate={~p"/"}
-                class="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-katakana font-medium text-sakura-light hover:border-sakura hover:text-sakura"
+                class="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-katakana font-medium text-sakura-dark hover:border-sakura hover:text-sakura"
               >
                 Home
               </.link>
+              
               <.link
                 navigate={~p"/explore"}
-                class="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-katakana font-medium text-sakura-light hover:border-sakura hover:text-sakura"
+                class="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-katakana font-medium text-sakura-dark hover:border-sakura hover:text-sakura"
               >
                 Explore
               </.link>
+
+              <%= if @current_user do %>
+                <.link
+                  navigate={~p"/quiz"}
+                  class="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-katakana font-medium text-sakura-dark hover:border-sakura hover:text-sakura"
+                >
+                  Quiz
+                </.link>
+              <% end %>
             </div>
           </div>
+          
           <div class="hidden md:ml-6 md:flex md:items-center">
             <div class="flex items-center space-x-4">
               <%= if @current_user do %>
                 <div class="text-sm font-katakana text-sakura-light">
-                  Hello, <span class="font-bold text-sakura"><%= @current_user.username %></span>
-                </div>                <.link
+                  Hello, <span class="font-bold text-sakura">{@current_user.username}</span>
+                </div>
+                
+                <.link
                   href={~p"/logout"}
                   method="delete"
                   class="rounded-md bg-white px-3 py-2 text-sm font-katakana font-semibold text-accent-blue border border-accent-blue hover:bg-gray-50"
@@ -47,7 +61,9 @@ defmodule KumaSanKanjiWeb.Components.Navigation do
                   class="rounded-md bg-sakura px-3 py-2 text-sm font-katakana font-semibold text-white hover:bg-sakura-dark"
                 >
                   Sign up
-                </.link>                <.link
+                </.link>
+                
+                <.link
                   navigate={~p"/login"}
                   class="rounded-md bg-white px-3 py-2 text-sm font-katakana font-semibold text-accent-blue border border-accent-blue hover:bg-gray-50"
                 >
@@ -56,6 +72,7 @@ defmodule KumaSanKanjiWeb.Components.Navigation do
               <% end %>
             </div>
           </div>
+          
           <div class="-mr-2 flex items-center md:hidden">
             <!-- Mobile menu button -->
             <button
@@ -64,8 +81,7 @@ defmodule KumaSanKanjiWeb.Components.Navigation do
               class="relative inline-flex items-center justify-center rounded-md bg-white p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               aria-expanded="false"
             >
-              <span class="absolute -inset-0.5"></span>
-              <span class="sr-only">Open main menu</span>
+              <span class="absolute -inset-0.5"></span> <span class="sr-only">Open main menu</span>
               <svg
                 class="block h-6 w-6"
                 fill="none"
@@ -84,31 +100,44 @@ defmodule KumaSanKanjiWeb.Components.Navigation do
           </div>
         </div>
       </div>
-
-      <!-- Mobile menu, show/hide based on menu state. -->
+      
+    <!-- Mobile menu, show/hide based on menu state. -->
       <div class="md:hidden hidden" id="mobile-menu">
         <div class="space-y-1 pb-3 pt-2">
           <.link
             navigate={~p"/"}
-            class="block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-medium text-gray-600 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-800"
+            class="block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-katakana font-medium text-sakura-dark hover:border-sakura hover:bg-gray-50 hover:text-sakura"
           >
             Home
           </.link>
+          
           <.link
             navigate={~p"/explore"}
-            class="block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-medium text-gray-600 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-800"
+            class="block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-katakana font-medium text-sakura-dark hover:border-sakura hover:bg-gray-50 hover:text-sakura"
           >
             Explore
           </.link>
+
+          <%= if @current_user do %>
+            <.link
+              navigate={~p"/quiz"}
+              class="block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-katakana font-medium text-sakura-dark hover:border-sakura hover:bg-gray-50 hover:text-sakura"
+            >
+              Quiz
+            </.link>
+          <% end %>
         </div>
+        
         <div class="border-t border-gray-200 pb-3 pt-4">
           <%= if @current_user do %>
             <div class="flex items-center px-4">
               <div class="ml-3">
-                <div class="text-base font-medium text-gray-800"><%= @current_user.username %></div>
-                <div class="text-sm font-medium text-gray-500"><%= @current_user.email %></div>
+                <div class="text-base font-medium text-gray-800">{@current_user.username}</div>
+                
+                <div class="text-sm font-medium text-gray-500">{@current_user.email}</div>
               </div>
             </div>
+            
             <div class="mt-3 space-y-1">
               <.link
                 href={~p"/logout"}
@@ -126,6 +155,7 @@ defmodule KumaSanKanjiWeb.Components.Navigation do
               >
                 Sign up
               </.link>
+              
               <.link
                 navigate={~p"/login"}
                 class="block rounded-md px-3 py-2 text-base font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-900"

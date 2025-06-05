@@ -37,7 +37,7 @@ defmodule KumaSanKanjiWeb.Router do
   scope "/", KumaSanKanjiWeb do
     pipe_through [:browser, :require_auth]
 
-    # We'll add protected routes here later
+    live "/quiz", QuizLive
   end
 
   # Other scopes may use custom stacks.

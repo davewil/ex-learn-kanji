@@ -6,11 +6,13 @@ defmodule KumaSanKanji.Kanji.KanjiTest do
   setup do
     # Clear all kanji before each test to ensure a clean state
     {:ok, kanjis} = Ash.read(Kanji)
+
     if kanjis && length(kanjis) > 0 do
       Enum.each(kanjis, fn kanji ->
         Ash.destroy!(kanji)
       end)
     end
+
     :ok
   end
 
@@ -32,6 +34,7 @@ defmodule KumaSanKanji.Kanji.KanjiTest do
 
       # Clear existing kanji first to ensure predictable offsets
       {:ok, kanjis} = Ash.read(Kanji)
+
       if kanjis && length(kanjis) > 0 do
         Enum.each(kanjis, fn kanji ->
           Ash.destroy!(kanji)
@@ -39,7 +42,8 @@ defmodule KumaSanKanji.Kanji.KanjiTest do
       end
 
       k1 = Kanji.create!(%{character: "一", grade: 1, stroke_count: 1, jlpt_level: 5})
-      Process.sleep(5) # Ensure distinct inserted_at if tests are extremely fast
+      # Ensure distinct inserted_at if tests are extremely fast
+      Process.sleep(5)
       k2 = Kanji.create!(%{character: "二", grade: 1, stroke_count: 2, jlpt_level: 5})
       Process.sleep(5)
       k3 = Kanji.create!(%{character: "三", grade: 1, stroke_count: 3, jlpt_level: 5})
@@ -80,6 +84,7 @@ defmodule KumaSanKanji.Kanji.KanjiTest do
     test "returns the total count of kanji" do
       # Ensure we start with a clean database
       {:ok, kanjis} = Ash.read(Kanji)
+
       if kanjis && length(kanjis) > 0 do
         Enum.each(kanjis, fn kanji ->
           Ash.destroy!(kanji)

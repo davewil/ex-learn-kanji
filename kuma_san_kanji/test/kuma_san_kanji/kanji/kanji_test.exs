@@ -19,7 +19,8 @@ defmodule KumaSanKanji.Kanji.KanjiTest do
       # Note: We're adding new kanji on top of the seeded data, so we can't assume specific positions
 
       k1 = Kanji.create!(%{character: "一", grade: 1, stroke_count: 1, jlpt_level: 5})
-      Process.sleep(5) # Ensure distinct inserted_at if tests are extremely fast
+      # Ensure distinct inserted_at if tests are extremely fast
+      Process.sleep(5)
       k2 = Kanji.create!(%{character: "二", grade: 1, stroke_count: 2, jlpt_level: 5})
       Process.sleep(5)
       k3 = Kanji.create!(%{character: "三", grade: 1, stroke_count: 3, jlpt_level: 5})

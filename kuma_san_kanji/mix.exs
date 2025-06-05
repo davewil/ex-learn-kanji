@@ -8,6 +8,7 @@ defmodule KumaSanKanji.MixProject do
       elixir: "~> 1.14",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
+      consolidate_protocols: Mix.env() != :dev,
       aliases: aliases(),
       deps: deps()
     ]
@@ -62,7 +63,9 @@ defmodule KumaSanKanji.MixProject do
       {:ash_sqlite, "~> 0.2.9"},
 
       # Password hashing
-      {:pbkdf2_elixir, "~> 2.0"}
+      {:pbkdf2_elixir, "~> 2.0"},
+      # MCP Integration
+      {:tidewave, "~> 0.1", only: [:dev]}
     ]
   end
 

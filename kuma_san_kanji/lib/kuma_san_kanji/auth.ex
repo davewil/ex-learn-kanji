@@ -6,7 +6,8 @@ defmodule KumaSanKanji.Auth do
   alias KumaSanKanji.Accounts.User
 
   # Maximum age for session tokens in seconds
-  @max_token_age 60 * 60 * 24 * 7 # 7 days
+  # 7 days
+  @max_token_age 60 * 60 * 24 * 7
 
   @doc """
   Logs in a user by email and password.
@@ -14,18 +15,26 @@ defmodule KumaSanKanji.Auth do
   """
   def login(email, password) do
     require Ash.Query
-    
+
     case User.login(email, password) do
-      {:ok, %User{} = user} -> {:ok, user}
-      {:ok, [%User{} = user]} -> {:ok, user}
-      {:ok, []} -> {:error, :not_found}
+      {:ok, %User{} = user} ->
+        {:ok, user}
+
+      {:ok, [%User{} = user]} ->
+        {:ok, user}
+
+      {:ok, []} ->
+        {:error, :not_found}
+
       {:error, %Ash.Error.Invalid{errors: errors}} ->
         if Enum.any?(errors, fn err -> Map.get(err, :field) == :password end) do
           {:error, :invalid_credentials}
         else
           {:error, %Ash.Error.Invalid{errors: errors}}
         end
-      {:error, _} = err -> err
+
+      {:error, _} = err ->
+        err
     end
   end
 

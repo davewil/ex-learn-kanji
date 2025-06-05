@@ -30,20 +30,17 @@ defmodule KumaSanKanjiWeb.LoginLive do
         <h1 class="text-3xl font-bold tracking-tight font-display text-accent-blue sm:text-4xl">
           Log In <span class="text-sakura-dark">ログイン</span>
         </h1>
+        
         <p class="mt-3 text-lg text-gray-600 font-katakana">
           Welcome back! Log in to continue your kanji learning journey.
         </p>
-
-        <.form
-          for={@form}
-          action={~p"/login"}
-          method="post"
-          class="mt-8 space-y-6"
-        >
+        
+        <.form for={@form} action={~p"/login"} method="post" class="mt-8 space-y-6">
           <div>
             <label for="email" class="block text-sm font-medium font-katakana text-gray-700">
               Email address
             </label>
+            
             <div class="mt-1">
               <input
                 type="email"
@@ -56,11 +53,12 @@ defmodule KumaSanKanjiWeb.LoginLive do
               />
             </div>
           </div>
-
+          
           <div>
             <label for="password" class="block text-sm font-medium font-katakana text-gray-700">
               Password
             </label>
+            
             <div class="mt-1">
               <input
                 type="password"
@@ -71,7 +69,7 @@ defmodule KumaSanKanjiWeb.LoginLive do
               />
             </div>
           </div>
-
+          
           <div>
             <button
               type="submit"
@@ -80,7 +78,7 @@ defmodule KumaSanKanjiWeb.LoginLive do
               Log in
             </button>
           </div>
-
+          
           <div class="text-center text-sm">
             <p class="text-gray-600 font-katakana">
               Don't have an account?

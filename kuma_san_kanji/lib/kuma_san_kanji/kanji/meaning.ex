@@ -4,33 +4,34 @@ defmodule KumaSanKanji.Kanji.Meaning do
     data_layer: AshSqlite.DataLayer
 
   attributes do
-    uuid_primary_key :id
-    attribute :value, :string, allow_nil?: false
-    attribute :language, :string, default: "en"
-    attribute :is_primary, :boolean, default: false
+    uuid_primary_key(:id)
+    attribute(:value, :string, allow_nil?: false)
+    attribute(:language, :string, default: "en")
+    attribute(:is_primary, :boolean, default: false)
   end
 
   relationships do
-    belongs_to :kanji, KumaSanKanji.Kanji.Kanji,
+    belongs_to(:kanji, KumaSanKanji.Kanji.Kanji,
       allow_nil?: false,
       define_attribute?: true
+    )
   end
 
   actions do
-    defaults [:read, :update, :destroy]
+    defaults([:read, :update, :destroy])
 
     create :create do
-      accept [:value, :language, :is_primary, :kanji_id]
+      accept([:value, :language, :is_primary, :kanji_id])
     end
   end
 
   code_interface do
-    define :get, action: :read
-    define :create, action: :create
+    define(:get, action: :read)
+    define(:create, action: :create)
   end
 
   sqlite do
-    table "kanji_meanings"
-    repo KumaSanKanji.Repo
+    table("kanji_meanings")
+    repo(KumaSanKanji.Repo)
   end
 end

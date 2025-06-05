@@ -696,7 +696,9 @@ defmodule KumaSanKanji.Seeds do
             translation: "I'm studying Chinese."
           }
         ]
-      },# Add after the existing kanji entries (after "中")
+      },
+
+      # Add after the existing kanji entries (after "中")
 
       %{
         character: "大",
@@ -946,7 +948,9 @@ defmodule KumaSanKanji.Seeds do
             translation: "It's a famous place."
           }
         ]
-      },# Add after the existing kanji entries (after "名")
+      },
+
+      # Add after the existing kanji entries (after "名")
 
       %{
         character: "田",
@@ -1200,7 +1204,9 @@ defmodule KumaSanKanji.Seeds do
             translation: "The rain has stopped."
           }
         ]
-      },# Add after the existing kanji entries (after "雨")
+      },
+
+      # Add after the existing kanji entries (after "雨")
 
       %{
         character: "天",
@@ -1449,7 +1455,9 @@ defmodule KumaSanKanji.Seeds do
             translation: "Where is the men's restroom?"
           }
         ]
-      },# Add after the existing kanji entries (after "男")
+      },
+
+      # Add after the existing kanji entries (after "男")
 
       %{
         character: "女",
@@ -1700,7 +1708,9 @@ defmodule KumaSanKanji.Seeds do
             translation: "I can see white clouds."
           }
         ]
-      },# Add these entries before the closing bracket of kanji_list
+      },
+
+      # Add these entries before the closing bracket of kanji_list
 
       %{
         character: "円",
@@ -2014,7 +2024,7 @@ defmodule KumaSanKanji.Seeds do
             translation: "Mr. Hayashi is my friend."
           }
         ]
-      },
+      }
     ]
 
     # Insert each Kanji and its related data

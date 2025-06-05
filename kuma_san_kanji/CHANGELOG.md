@@ -1,6 +1,36 @@
-﻿# Changelog
+# Changelog
 
-## June 4, 2025
+## June 5, 2025 (Update 3)
+
+### Fixed Compiler Warnings and Improved Codebase Quality
+
+- **Fixed quiz session loading** - Fixed undefined module function `KumaSanKanji.Api.load/2` in `quiz/session.ex` by using Ash.Query for loading relationships
+- **Improved error handling** - Enhanced error handling in the Kanji loading process with proper exception messaging
+- **Code structure improvements** - Fixed syntax and spacing issues in the `session.ex` file
+- **Enhanced code clarity** - Fixed indentation and structure in multiple files
+
+## June 5, 2025 (Update 2)
+
+### Fixed SRS Reset ArgumentError
+
+- **Fixed critical issue** - Fixed `ArgumentError` occurring when clicking the "Reset Quiz Progress" button in the web UI
+- **Enhanced error handling** - Added comprehensive error handling and logging throughout the SRS reset flow
+- **Debug-friendly code** - Added detailed logging to help identify issues in the reset process
+- **Robust exception handling** - Added try/rescue blocks to properly catch and report exceptions
+- **Improved documentation** - Better comments explaining the SRS reset process and its components
+
+## June 5, 2025
+
+### Enhanced Debug Reset Functionality
+
+- **Enhanced reset functionality** - Improved the `reset_user_progress` function to not only clear progress but also set up an initial review list
+- **Added configuration options** - Added options to specify number of kanji to initialize and whether to make them due immediately
+- **Improved error handling** - Better error handling and logging in SRS reset logic
+- **Enhanced UI for dev tools** - Made the reset button more visually distinct as a debugging tool
+- **Better user feedback** - Enhanced messaging to show how many kanji were initialized for review
+- **Fixed dev mode issues** - Ensured the reset button properly appears in development mode
+
+## June 4, 2025 (Part 2)
 
 ### Test Fixes and Authentication Improvements
 
@@ -10,7 +40,7 @@
 - **Code cleanup** - Fixed unused variables and imports in test modules
 - **Enhanced maintainability** - Removed unnecessary code in user_live_auth module
 
-## June 4, 2025
+## June 4, 2025 (Part 1)
 
 ### Ash Framework Form Integration Fixed
 
@@ -164,3 +194,18 @@
 ## 2025-06-04
 - Fixed compilation error in `KumaSanKanji.Accounts.User` by replacing invalid `manual :login` action with a generic Ash action using `action :login, :struct do ... end` and a `run` block, following Ash documentation.
 - Re-seeded the database using priv/repo/seeds.exs.
+
+## 2025-06-05
+- Enhanced duplicate kanji progress merge logic in `fix_duplicates.exs` to combine all SRS fields (interval, ease_factor, repetitions, review dates, last_result) for accurate user progress migration.
+- Fixed FunctionClauseError in quiz stats: next_review_date is now normalized to NaiveDateTime for all types (string, DateTime, NaiveDateTime) in SRS logic.
+- Fixed Ash filter error in due_for_review by removing unsupported strftime and using direct datetime comparison. Quiz page now loads due kanji correctly.
+- Added a dev-only 'Reset Quiz Progress' button to the quiz page and supporting backend logic for easy testing. Button only appears in dev mode and securely deletes all user progress for the current user.
+
+## 2025-06-10
+- Added detailed error logging and improved error surfacing in quiz_live.ex to help diagnose quiz page errors. Added try/rescue in session helpers and user-friendly error messages with debug info in non-production.
+
+## [Unreleased] - 2024-06-11
+
+- Fixed unused variable warning in `restore_session_if_exists/2` by renaming `user_id` to `_user_id` in the nil clause.
+
+- Ensured all div tags in the 'active quiz state' block of `quiz_live.html.heex` are properly closed to resolve template parse error.

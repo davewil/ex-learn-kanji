@@ -10,14 +10,15 @@ defmodule KumaSanKanji.Application do
     children = [
       KumaSanKanjiWeb.Telemetry,
       {Ecto.Migrator,
-        repos: Application.fetch_env!(:kuma_san_kanji, :ecto_repos),
-        skip: skip_migrations?()},
+       repos: Application.fetch_env!(:kuma_san_kanji, :ecto_repos), skip: skip_migrations?()},
       {DNSCluster, query: Application.get_env(:kuma_san_kanji, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: KumaSanKanji.PubSub},
       # Start the Finch HTTP client for sending emails
       {Finch, name: KumaSanKanji.Finch},
       # Start the Ash SQLite repository
       KumaSanKanji.Repo,
+      # Start the Quiz Session manager
+      KumaSanKanji.Quiz.Session,
       # Start to serve requests, typically the last entry
       KumaSanKanjiWeb.Endpoint
     ]
