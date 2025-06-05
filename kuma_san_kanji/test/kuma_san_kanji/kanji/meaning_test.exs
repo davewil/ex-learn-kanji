@@ -25,7 +25,7 @@ defmodule KumaSanKanji.Kanji.MeaningTest do
       assert meaning.language == "en"
       assert meaning.is_primary == true
       assert meaning.kanji_id == kanji.id
-      
+
       # Verify it can be read back via the relationship
       {:ok, [kanji_with_meanings]} = Kanji.get_by_id(kanji.id, load: [:meanings])
       assert Enum.any?(kanji_with_meanings.meanings, &(&1.id == meaning.id))
@@ -36,8 +36,8 @@ defmodule KumaSanKanji.Kanji.MeaningTest do
       {:error, changeset} = Meaning.create(params)
 
       assert Enum.any?(changeset.errors, fn error ->
-        match?(%Ash.Error.Changes.Required{field: :kanji_id}, error)
-      end)
+               match?(%Ash.Error.Changes.Required{field: :kanji_id}, error)
+             end)
     end
   end
 end

@@ -28,7 +28,10 @@ defmodule KumaSanKanji.Kanji.ExampleSentenceTest do
       assert example_sentence.kanji_id == kanji.id
       # Verify it can be read back via the relationship
       {:ok, [kanji_with_examples]} = Kanji.get_by_id(kanji.id, load: [:example_sentences])
-      assert Enum.any?(kanji_with_examples.example_sentences, fn es -> es.id == example_sentence.id end)
+
+      assert Enum.any?(kanji_with_examples.example_sentences, fn es ->
+               es.id == example_sentence.id
+             end)
     end
 
     test "create action requires a kanji_id" do
@@ -36,8 +39,8 @@ defmodule KumaSanKanji.Kanji.ExampleSentenceTest do
       {:error, changeset} = ExampleSentence.create(params)
 
       assert Enum.any?(changeset.errors, fn error ->
-        match?(%Ash.Error.Changes.Required{field: :kanji_id}, error)
-      end)
+               match?(%Ash.Error.Changes.Required{field: :kanji_id}, error)
+             end)
     end
   end
 end

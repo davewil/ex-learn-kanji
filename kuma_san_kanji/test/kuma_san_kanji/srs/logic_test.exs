@@ -40,7 +40,8 @@ defmodule KumaSanKanji.SRS.LogicTest do
 
     test "returns empty list when no kanji are due", %{user: user, kanji: kanji} do
       # Initialize progress with future review date
-      future_date = DateTime.add(DateTime.utc_now(), 3600, :second) # 1 hour from now
+      # 1 hour from now
+      future_date = DateTime.add(DateTime.utc_now(), 3600, :second)
 
       UserKanjiProgress
       |> Ash.Changeset.for_create(:create, %{

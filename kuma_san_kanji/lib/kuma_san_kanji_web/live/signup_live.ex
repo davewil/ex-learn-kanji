@@ -5,6 +5,7 @@ defmodule KumaSanKanjiWeb.SignupLive do
   @impl true
   def mount(_params, _session, socket) do
     form = AshPhoenix.Form.for_create(User, :sign_up, as: "user")
+
     {:ok,
      socket
      |> assign(:ash_form, form)
@@ -23,7 +24,10 @@ defmodule KumaSanKanjiWeb.SignupLive do
       {:ok, _user} ->
         {:noreply,
          socket
-         |> push_navigate(to: "/login?signup_success=true&email=" <> URI.encode_www_form(user_params["email"]))}
+         |> push_navigate(
+           to: "/login?signup_success=true&email=" <> URI.encode_www_form(user_params["email"])
+         )}
+
       {:error, form} ->
         {:noreply, socket |> assign(:ash_form, form) |> assign(:form, to_form(form))}
     end
@@ -37,24 +41,39 @@ defmodule KumaSanKanjiWeb.SignupLive do
         <h1 class="text-3xl font-bold tracking-tight font-display text-accent-blue sm:text-4xl">
           Sign Up <span class="text-sakura-dark">登録</span>
         </h1>
+        
         <p class="mt-3 text-lg font-katakana text-gray-600">
           Create an account to track your progress and save your favorite kanji.
         </p>
-
-        <.form
-          for={@form}
-          as={:user}
-          phx-change="validate"
-          phx-submit="signup"
-          class="mt-8 space-y-6"
-        >
-          <.input field={@form[:email]} label="Email address" required class="block w-full rounded-md border-gray-300 shadow-sm focus:border-accent-blue focus:ring-accent-blue sm:text-sm" placeholder="you@example.com" />
-
-          <.input field={@form[:username]} label="Username" required class="block w-full rounded-md border-gray-300 shadow-sm focus:border-accent-blue focus:ring-accent-blue sm:text-sm" placeholder="kuma_student" />
-
-          <.input field={@form[:password]} label="Password" type="password" required minlength="8" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-accent-blue focus:ring-accent-blue sm:text-sm" placeholder="Minimum 8 characters" />
-          <p class="mt-2 text-xs text-gray-500 font-katakana">Password must be at least 8 characters and include a number</p>
-
+        
+        <.form for={@form} as={:user} phx-change="validate" phx-submit="signup" class="mt-8 space-y-6">
+          <.input
+            field={@form[:email]}
+            label="Email address"
+            required
+            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-accent-blue focus:ring-accent-blue sm:text-sm"
+            placeholder="you@example.com"
+          />
+          <.input
+            field={@form[:username]}
+            label="Username"
+            required
+            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-accent-blue focus:ring-accent-blue sm:text-sm"
+            placeholder="kuma_student"
+          />
+          <.input
+            field={@form[:password]}
+            label="Password"
+            type="password"
+            required
+            minlength="8"
+            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-accent-blue focus:ring-accent-blue sm:text-sm"
+            placeholder="Minimum 8 characters"
+          />
+          <p class="mt-2 text-xs text-gray-500 font-katakana">
+            Password must be at least 8 characters and include a number
+          </p>
+          
           <div>
             <button
               type="submit"
@@ -63,11 +82,14 @@ defmodule KumaSanKanjiWeb.SignupLive do
               Create account
             </button>
           </div>
-
+          
           <div class="text-center text-sm">
             <p class="text-gray-600 font-katakana">
               Already have an account?
-              <.link navigate={~p"/login"} class="font-semibold text-accent-blue hover:text-accent-blue/80">
+              <.link
+                navigate={~p"/login"}
+                class="font-semibold text-accent-blue hover:text-accent-blue/80"
+              >
                 Log in
               </.link>
             </p>

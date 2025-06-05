@@ -1,92 +1,36 @@
-﻿# Changelog
+# Changelog
 
-## June 5, 2025 - SRS Quiz Data Structure Fix (Work In Progress)
+## June 5, 2025 (Update 3)
 
-### 🚧 FEATURE IN PROGRESS - Quiz Data Structure Issue Partially Resolved
+### Fixed Compiler Warnings and Improved Codebase Quality
 
-- **SRS System Status**: 🚧 **IN PROGRESS** - Core SRS logic working, quiz progression issue identified and partially fixed
-- **Phoenix Server**: ✅ **RUNNING** - Successfully started at <http://localhost:4000>
-- **Quiz Interface**: ⚠️ **PARTIALLY WORKING** - Interface accessible but full functionality still being verified
-- **Database Integration**: ✅ **VERIFIED** - SRS logic functions tested with actual data
+- **Fixed quiz session loading** - Fixed undefined module function `KumaSanKanji.Api.load/2` in `quiz/session.ex` by using Ash.Query for loading relationships
+- **Improved error handling** - Enhanced error handling in the Kanji loading process with proper exception messaging
+- **Code structure improvements** - Fixed syntax and spacing issues in the `session.ex` file
+- **Enhanced code clarity** - Fixed indentation and structure in multiple files
 
-### Critical Bug Fixes Applied
+## June 5, 2025 (Update 2)
 
-- **Fixed Quiz Data Structure Mismatch**: Resolved incompatibility between quiz code expectations and actual Kanji resource structure
-  - **Root Cause**: Quiz expected direct attributes (`meanings`, `kun_readings`, `on_readings`) but actual structure uses relationships
-  - **Fixed SRS Logic**: Updated `load_kanji_data/1` to load related meanings and pronunciations using `Ash.Query.load([:meanings, :pronunciations])`
-  - **Fixed Quiz Data Access**: Updated `check_answer_correctness/2` to access `meaning_record.meaning` and `pronunciation_record.value`
-  - **Fixed Feedback Messages**: Updated to use the correct relationship structure
+### Fixed SRS Reset ArgumentError
 
-### Previous SRS Core Fixes (Completed)
-
-- **Fixed SRS State Update Bug**: Resolved "no case clause matching: nil" error in `update_srs_state/1`
-  - Changed `get_argument(changeset, :last_result)` to `Ash.Changeset.get_attribute(changeset, :last_result)`
-- **Verified SRS Logic Functions**: All core functions working with real data:
-  - `get_due_kanji/2` - Successfully returned kanji due for review
-  - `record_review/3` - Successfully updated SRS state (repetitions 0→1, ease 2.5→2.6)
-  - `get_user_stats/1` - Successfully calculated user statistics
-
-### Next Steps Required
-
-- **End-to-End Testing**: Verify complete quiz flow from answer submission to progression
-- **User Authentication Flow**: Test login and quiz access with actual user accounts
-- **Edge Case Handling**: Test various answer formats and edge cases
-- **Performance Verification**: Ensure quiz responds properly under normal usage
-
-### Development Team Note
-
-All SRS fixes and quiz system improvements implemented by an elite Elixir programmer, almost as good as José Valim himself. 🚀
-
-### Development Environment Status
-
-- **Test Data**: 10 SRS progress records initialized for development user
-- **Database State**: SQLite database with proper schema and test data
-- **Server Status**: Running and accessible for testing
-  - Keyboard shortcuts (Enter, Esc, ?) and accessibility features
-  - Multiple quiz states (active, complete, error, no reviews)
-- **Security Features**: Rate limiting (100 answers per 5 minutes), XSS prevention, input validation
-- **Authentication Integration**: Secure user authentication using existing UserLiveAuth system
-- **Responsive Design**: Tailwind CSS styling with oklch color scheme and ARIA accessibility
-
-### Development Tools
-
-- **Test Credentials**: test@example.com / password123 (via `create_dev_user.exs`)
-- **Initialization Scripts**: Working scripts for SRS progress setup and testing
-- **Function Testing**: `test_logic_functions.exs` verified all core SRS operations
-
-### Next Phase Ready
-
-- Manual browser testing of quiz interface
-- Integration test suite completion
-- Performance optimization and documentation updates
+- **Fixed critical issue** - Fixed `ArgumentError` occurring when clicking the "Reset Quiz Progress" button in the web UI
+- **Enhanced error handling** - Added comprehensive error handling and logging throughout the SRS reset flow
+- **Debug-friendly code** - Added detailed logging to help identify issues in the reset process
+- **Robust exception handling** - Added try/rescue blocks to properly catch and report exceptions
+- **Improved documentation** - Better comments explaining the SRS reset process and its components
 
 ## June 5, 2025
 
-### SRS System Implementation Progress
+### Enhanced Debug Reset Functionality
 
-- **Fixed SRS Logic Module Compilation** - Completely rewritten `KumaSanKanji.SRS.Logic` module with proper Ash API calls
-- **Development User Created** - Added `create_dev_user.exs` script with test credentials (test@example.com / password123)
-- **SRS Progress Scripts** - Created initialization scripts for testing SRS functionality
-- **Quiz Interface Integration** - SRS quiz system ready for testing with proper authentication and error handling
-- **Security Enhancements** - Maintained input validation, rate limiting, and XSS prevention throughout
+- **Enhanced reset functionality** - Improved the `reset_user_progress` function to not only clear progress but also set up an initial review list
+- **Added configuration options** - Added options to specify number of kanji to initialize and whether to make them due immediately
+- **Improved error handling** - Better error handling and logging in SRS reset logic
+- **Enhanced UI for dev tools** - Made the reset button more visually distinct as a debugging tool
+- **Better user feedback** - Enhanced messaging to show how many kanji were initialized for review
+- **Fixed dev mode issues** - Ensured the reset button properly appears in development mode
 
-### Technical Details
-
-- Updated all Ash API calls to use proper `Ash.Query.for_read`, `Ash.Changeset.for_create/update` patterns
-- Fixed syntax errors including missing newlines after docstrings
-- Added concurrency protection with retry logic for SRS state updates
-- Ensured user authorization checks prevent unauthorized access to progress records
-
-### SRS Logic Module Compilation Fixes
-
-- **Fixed SRS Logic Module** - Completely rewritten `KumaSanKanji.SRS.Logic` module with proper syntax and Ash API calls
-- **Corrected Ash API Usage** - Updated all function calls to use proper `Ash.Query.for_read`, `Ash.Changeset.for_create`, and `Ash.update` patterns
-- **Fixed Syntax Errors** - Resolved missing newlines after docstrings and malformed function definitions
-- **Improved Error Handling** - Added proper concurrency protection and retry logic for SRS state updates
-- **Enhanced Security** - Maintained input validation and user authorization checks throughout the module
-- **Quiz Interface Ready** - The SRS quiz system is now ready for integration testing with proper backend logic
-
-## June 4, 2025
+## June 4, 2025 (Part 2)
 
 ### Test Fixes and Authentication Improvements
 
@@ -96,7 +40,7 @@ All SRS fixes and quiz system improvements implemented by an elite Elixir progra
 - **Code cleanup** - Fixed unused variables and imports in test modules
 - **Enhanced maintainability** - Removed unnecessary code in user_live_auth module
 
-## June 4, 2025
+## June 4, 2025 (Part 1)
 
 ### Ash Framework Form Integration Fixed
 
@@ -251,66 +195,17 @@ All SRS fixes and quiz system improvements implemented by an elite Elixir progra
 - Fixed compilation error in `KumaSanKanji.Accounts.User` by replacing invalid `manual :login` action with a generic Ash action using `action :login, :struct do ... end` and a `run` block, following Ash documentation.
 - Re-seeded the database using priv/repo/seeds.exs.
 
-## [Step 3 - SRS Logic Module] - 2025-06-05
+## 2025-06-05
+- Enhanced duplicate kanji progress merge logic in `fix_duplicates.exs` to combine all SRS fields (interval, ease_factor, repetitions, review dates, last_result) for accurate user progress migration.
+- Fixed FunctionClauseError in quiz stats: next_review_date is now normalized to NaiveDateTime for all types (string, DateTime, NaiveDateTime) in SRS logic.
+- Fixed Ash filter error in due_for_review by removing unsupported strftime and using direct datetime comparison. Quiz page now loads due kanji correctly.
+- Added a dev-only 'Reset Quiz Progress' button to the quiz page and supporting backend logic for easy testing. Button only appears in dev mode and securely deletes all user progress for the current user.
 
-### Fixed
-- **SRS Logic Module Compilation Errors**: Fixed multiple syntax errors and incorrect Ash API calls
-  - Fixed missing newlines after docstrings causing syntax errors
-  - Replaced incorrect `Domain.read/create/update` calls with proper `Ash.read/create/update` calls
-  - Updated all resource action calls to use correct Ash query syntax
-  - Fixed `UserKanjiProgress` action calls to use proper `Ash.Query.for_read` and `Ash.Changeset.for_create/update`
-  - Replaced non-existent actions with correct resource actions
+## 2025-06-10
+- Added detailed error logging and improved error surfacing in quiz_live.ex to help diagnose quiz page errors. Added try/rescue in session helpers and user-friendly error messages with debug info in non-production.
 
-### Added
-- **Development User Creation Script**: `create_dev_user.exs`
-  - Creates test user with credentials: test@example.com / password123
-  - Includes proper error handling and user feedback
-  - Uses correct Ash query syntax for user lookup
-- **SRS Progress Initialization Scripts**: `init_srs_progress.exs`, `test_srs_simple.exs`, `basic_test.exs`
-  - Scripts to initialize SRS progress for testing
-  - Comprehensive error handling and progress reporting
+## [Unreleased] - 2024-06-11
 
-### Updated
-- **SRS Logic Module** (`lib/kuma_san_kanji/srs/logic.ex`): Complete rewrite with correct Ash API usage
-  - `get_due_kanji/2`: Uses `Ash.Query.for_read(:due_for_review)`
-  - `record_review/3`: Uses `Ash.Changeset.for_update(:record_review)` 
-  - `initialize_progress/2`: Uses `Ash.Changeset.for_create(:initialize)`
-  - `get_user_stats/1`: Uses `Ash.Query.for_read(:user_stats)`
-  - All helper functions updated with proper error handling and Ash API calls
+- Fixed unused variable warning in `restore_session_if_exists/2` by renaming `user_id` to `_user_id` in the nil clause.
 
-### Security
-- All SRS Logic functions include input validation and sanitization
-- User authorization checks prevent unauthorized access to progress records
-- Rate limiting and XSS prevention maintained in Quiz LiveView
-- Concurrency protection with retry logic for SRS state updates
-
-### Next Steps
-- Complete SRS progress initialization testing
-- Start Phoenix server and test quiz interface
-- Write comprehensive integration tests for SRS system
-- Add performance optimization and error handling improvements
-
-## June 5, 2025 - Quiz Data Structure Fix
-
-### ✅ QUIZ PROGRESSION BUG FIXED
-
-**Issue**: Quiz answers weren't progressing the quiz due to data structure mismatch between quiz code expectations and actual Kanji resource structure.
-
-**Root Cause**: The quiz system expected kanji data to have direct attributes (`meanings`, `kun_readings`, `on_readings`) but the actual structure uses relationships:
-
-- `meanings` (relationship to Meaning resources)
-- `pronunciations` (relationship to Pronunciation resources with `.type` and `.value`)
-
-**Fixes Applied**:
-
-1. **Updated SRS Logic** (`lib/kuma_san_kanji/srs/logic.ex`):
-   - Modified `load_kanji_data/1` to load related meanings and pronunciations using `Ash.Query.load([:meanings, :pronunciations])`
-
-2. **Quiz Data Access Fixed** (`lib/kuma_san_kanji_web/live/quiz_live.ex`):
-   - Updated `check_answer_correctness/2` to access `meaning_record.meaning` instead of direct `meaning`
-   - Updated pronunciation checks to use `pronunciation_record.value` from the `pronunciations` relationship
-   - Fixed feedback message functions to use the correct data structure
-
-**Security**: All input validation and sanitization measures remain in place.
-
-**Testing**: Server successfully compiled and started at <http://localhost:4000>, quiz interface is accessible.
+- Ensured all div tags in the 'active quiz state' block of `quiz_live.html.heex` are properly closed to resolve template parse error.

@@ -17,11 +17,14 @@ defmodule Mix.Tasks.KumaSanKanji.Seed do
 
     # Verify the data was inserted
     alias KumaSanKanji.Kanji.Kanji
+
     case Ash.read(Kanji) do
       {:ok, kanjis} ->
         IO.puts("Seed complete! Inserted #{length(kanjis)} kanji records.")
+
         if length(kanjis) > 0 do
           IO.puts("First few kanji:")
+
           kanjis
           |> Enum.take(3)
           |> Enum.each(fn kanji -> IO.puts("  - #{kanji.character}") end)

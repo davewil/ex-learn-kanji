@@ -25,7 +25,7 @@ defmodule KumaSanKanji.Kanji.PronunciationTest do
       assert pronunciation.value == "オン"
       assert pronunciation.romaji == "on"
       assert pronunciation.kanji_id == kanji.id
-      
+
       # Verify it can be read back via the relationship
       {:ok, [kanji_with_pronunciations]} = Kanji.get_by_id(kanji.id, load: [:pronunciations])
       assert Enum.any?(kanji_with_pronunciations.pronunciations, &(&1.id == pronunciation.id))
@@ -36,8 +36,8 @@ defmodule KumaSanKanji.Kanji.PronunciationTest do
       {:error, changeset} = Pronunciation.create(params)
 
       assert Enum.any?(changeset.errors, fn error ->
-        match?(%Ash.Error.Changes.Required{field: :kanji_id}, error)
-      end)
+               match?(%Ash.Error.Changes.Required{field: :kanji_id}, error)
+             end)
     end
   end
 end

@@ -11,11 +11,17 @@ defmodule KumaSanKanjiWeb.UserLiveAuth do
   @doc """
   Assigns the current_user to the socket assigns.
   """
-  def on_mount(:mount_current_user, _params, %{"user_id" => user_id, "token" => token} = _session, socket)
-    when is_binary(user_id) and is_binary(token) do
+  def on_mount(
+        :mount_current_user,
+        _params,
+        %{"user_id" => user_id, "token" => token} = _session,
+        socket
+      )
+      when is_binary(user_id) and is_binary(token) do
     case Auth.get_user_from_session(user_id, token) do
       {:ok, user} ->
         {:cont, assign(socket, current_user: user)}
+
       {:error, _} ->
         {:cont, assign(socket, current_user: nil)}
     end
@@ -26,11 +32,17 @@ defmodule KumaSanKanjiWeb.UserLiveAuth do
   end
 
   # Ensures user is authenticated. If not, redirects to login page.
-  def on_mount(:ensure_authenticated, _params, %{"user_id" => user_id, "token" => token} = _session, socket)
-    when is_binary(user_id) and is_binary(token) do
+  def on_mount(
+        :ensure_authenticated,
+        _params,
+        %{"user_id" => user_id, "token" => token} = _session,
+        socket
+      )
+      when is_binary(user_id) and is_binary(token) do
     case Auth.get_user_from_session(user_id, token) do
       {:ok, user} ->
         {:cont, assign(socket, current_user: user)}
+
       {:error, _} ->
         {:halt, redirect_to_login(socket)}
     end

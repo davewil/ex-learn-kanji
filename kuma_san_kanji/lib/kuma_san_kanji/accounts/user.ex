@@ -4,32 +4,33 @@ defmodule KumaSanKanji.Accounts.User do
     data_layer: AshSqlite.DataLayer
 
   attributes do
-    uuid_primary_key :id
-    attribute :email, :ci_string, allow_nil?: false
-    attribute :hashed_password, :string, allow_nil?: false, sensitive?: true
-    attribute :username, :string, allow_nil?: false
-    attribute :joined_at, :utc_datetime, default: &DateTime.utc_now/0
+    uuid_primary_key(:id)
+    attribute(:email, :ci_string, allow_nil?: false)
+    attribute(:hashed_password, :string, allow_nil?: false, sensitive?: true)
+    attribute(:username, :string, allow_nil?: false)
+    attribute(:joined_at, :utc_datetime, default: &DateTime.utc_now/0)
   end
 
   actions do
-    defaults [:create, :read, :update, :destroy]
+    defaults([:create, :read, :update, :destroy])
 
     create :sign_up do
-      accept [:email, :username]
-      argument :password, :string, allow_nil?: false, sensitive?: true
+      accept([:email, :username])
+      argument(:password, :string, allow_nil?: false, sensitive?: true)
 
-      change &__MODULE__.validate_password_length/2
-      change &__MODULE__.hash_password/2
+      change(&__MODULE__.validate_password_length/2)
+      change(&__MODULE__.hash_password/2)
     end
 
     action :login, :struct do
-      constraints instance_of: __MODULE__
-      argument :email, :ci_string, allow_nil?: false
-      argument :password, :string, allow_nil?: false, sensitive?: true
+      constraints(instance_of: __MODULE__)
+      argument(:email, :ci_string, allow_nil?: false)
+      argument(:password, :string, allow_nil?: false, sensitive?: true)
 
-      run fn input, _context ->
+      run(fn input, _context ->
         require Ash.Query
         query = Ash.Query.filter(__MODULE__, email: input.arguments.email)
+
         case Ash.read_one(query) do
           {:ok, user} when not is_nil(user) ->
             if Pbkdf2.verify_pass(input.arguments.password, user.hashed_password) do
@@ -37,17 +38,18 @@ defmodule KumaSanKanji.Accounts.User do
             else
               {:error, :invalid_password}
             end
+
           _ ->
             {:error, :invalid_email}
         end
-      end
+      end)
     end
   end
 
   code_interface do
-    define :get_by_email, args: [:email], action: :read
-    define :sign_up, args: [:email, :username, :password], action: :sign_up
-    define :login, args: [:email, :password], action: :login
+    define(:get_by_email, args: [:email], action: :read)
+    define(:sign_up, args: [:email, :username, :password], action: :sign_up)
+    define(:login, args: [:email, :password], action: :login)
   end
 
   # Custom validation function
@@ -87,11 +89,11 @@ defmodule KumaSanKanji.Accounts.User do
   end
 
   identities do
-    identity :unique_email, [:email]
+    identity(:unique_email, [:email])
   end
 
   sqlite do
-    table "users"
-    repo KumaSanKanji.Repo
+    table("users")
+    repo(KumaSanKanji.Repo)
   end
 end

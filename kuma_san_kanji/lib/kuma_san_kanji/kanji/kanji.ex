@@ -4,12 +4,13 @@ defmodule KumaSanKanji.Kanji.Kanji do
     data_layer: AshSqlite.DataLayer
 
   attributes do
-    uuid_primary_key :id
-    attribute :character, :string, allow_nil?: false
-    attribute :grade, :integer, default: nil
-    attribute :stroke_count, :integer, default: nil
-    attribute :jlpt_level, :integer, default: nil
-    timestamps() # Added timestamps
+    uuid_primary_key(:id)
+    attribute(:character, :string, allow_nil?: false)
+    attribute(:grade, :integer, default: nil)
+    attribute(:stroke_count, :integer, default: nil)
+    attribute(:jlpt_level, :integer, default: nil)
+    # Added timestamps
+    timestamps()
     # Add a serial ID for ordering if one doesn't exist
     # If you have a created_at or an auto-incrementing integer primary key, that can be used too.
     # For simplicity, let's assume you might need to add one or use an existing field.
@@ -18,24 +19,30 @@ defmodule KumaSanKanji.Kanji.Kanji do
   end
 
   relationships do
-    has_many :meanings, KumaSanKanji.Kanji.Meaning, destination_attribute: :kanji_id
-    has_many :pronunciations, KumaSanKanji.Kanji.Pronunciation, destination_attribute: :kanji_id
-    has_many :example_sentences, KumaSanKanji.Kanji.ExampleSentence, destination_attribute: :kanji_id
+    has_many(:meanings, KumaSanKanji.Kanji.Meaning, destination_attribute: :kanji_id)
+    has_many(:pronunciations, KumaSanKanji.Kanji.Pronunciation, destination_attribute: :kanji_id)
+
+    has_many(:example_sentences, KumaSanKanji.Kanji.ExampleSentence,
+      destination_attribute: :kanji_id
+    )
   end
+
   actions do
-    defaults [:read, :update, :destroy]
+    defaults([:read, :update, :destroy])
 
     create :create do
-      accept [:character, :grade, :stroke_count, :jlpt_level]
-    end    # Custom read action for getting by ID with relationships
+      accept([:character, :grade, :stroke_count, :jlpt_level])
+    end
+
+    # Custom read action for getting by ID with relationships
     read :get_by_id do
-      argument :id, :uuid, allow_nil?: false
+      argument(:id, :uuid, allow_nil?: false)
 
-      filter expr(id == ^arg(:id))
+      filter(expr(id == ^arg(:id)))
 
-      prepare fn query, _context ->
+      prepare(fn query, _context ->
         Ash.Query.limit(query, 1)
-      end
+      end)
     end
 
     # Removed the :random action
@@ -44,17 +51,20 @@ defmodule KumaSanKanji.Kanji.Kanji do
     # end    # New action to get a Kanji by its order/offset
     read :by_offset do
       # Argument for the offset
-      argument :offset, :integer, allow_nil?: false
+      argument(:offset, :integer, allow_nil?: false)
 
-      prepare fn query, context ->
+      prepare(fn query, context ->
         # Get offset from query.arguments
         offset = Map.get(query.arguments, :offset)
+
         query
         |> Ash.Query.sort(:inserted_at)
         |> Ash.Query.offset(offset)
         |> Ash.Query.limit(1)
-      end
-    end  end
+      end)
+    end
+  end
+
   # Calculate count using read action and length
   def count_all do
     case Ash.read(__MODULE__) do
@@ -69,14 +79,14 @@ defmodule KumaSanKanji.Kanji.Kanji do
   end
 
   code_interface do
-    define :get, action: :read
-    define :get_by_id, args: [:id], action: :get_by_id
-    define :create, action: :create
-    define :by_offset, args: [:offset], action: :by_offset
+    define(:get, action: :read)
+    define(:get_by_id, args: [:id], action: :get_by_id)
+    define(:create, action: :create)
+    define(:by_offset, args: [:offset], action: :by_offset)
   end
 
   sqlite do
-    table "kanjis"
-    repo KumaSanKanji.Repo
+    table("kanjis")
+    repo(KumaSanKanji.Repo)
   end
 end

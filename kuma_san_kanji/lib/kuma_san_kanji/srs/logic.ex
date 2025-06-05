@@ -57,8 +57,8 @@ defmodule KumaSanKanji.SRS.Logic do
   {:ok, %UserKanjiProgress{}} | {:error, reason}
   """
   def record_review(progress_id, result, user_id)
-      when is_binary(progress_id) and result in [:correct, :incorrect, :skip] and is_binary(user_id) do
-
+      when is_binary(progress_id) and result in [:correct, :incorrect, :skip] and
+             is_binary(user_id) do
     # First, get the progress record and verify it belongs to the user
     case UserKanjiProgress
          |> Ash.Query.filter(id == ^progress_id)
@@ -91,34 +91,59 @@ defmodule KumaSanKanji.SRS.Logic do
   """
   def initialize_progress(user_id, kanji_id)
       when is_binary(user_id) and is_binary(kanji_id) do
+    require Logger
+    Logger.debug("[SRS.Logic] Initializing progress for user #{user_id}, kanji #{kanji_id}")
 
-    # Validate that kanji exists
-    case Kanji
-         |> Ash.Query.filter(id == ^kanji_id)
-         |> Ash.read() do
-      {:ok, [_kanji]} ->
-        # Check if progress already exists
-        case UserKanjiProgress
-             |> Ash.Query.for_read(:get_user_kanji_progress, %{user_id: user_id, kanji_id: kanji_id})
-             |> Ash.read() do
-          {:ok, [existing]} ->
-            {:ok, existing}
+    try do
+      # Validate that kanji exists
+      case Kanji
+           |> Ash.Query.filter(id == ^kanji_id)
+           |> Ash.read() do
+        {:ok, [kanji]} ->
+          Logger.debug("[SRS.Logic] Found kanji: #{kanji.character}")
 
-          {:ok, []} ->
-            # Create new progress record using the initialize action
-            UserKanjiProgress
-            |> Ash.Changeset.for_create(:initialize, %{user_id: user_id, kanji_id: kanji_id})
-            |> Ash.create()
+          # Check if progress already exists
+          case UserKanjiProgress
+               |> Ash.Query.for_read(:get_user_kanji_progress, %{
+                 user_id: user_id,
+                 kanji_id: kanji_id
+               })
+               |> Ash.read() do
+            {:ok, [existing]} ->
+              Logger.debug(
+                "[SRS.Logic] Progress already exists for this kanji, returning existing"
+              )
 
-          {:error, reason} ->
-            {:error, reason}
-        end
+              {:ok, existing}
 
-      {:ok, []} ->
-        {:error, :kanji_not_found}
+            {:ok, []} ->
+              # Create new progress record using the initialize action
+              Logger.debug("[SRS.Logic] Creating new progress record")
 
-      {:error, reason} ->
-        {:error, reason}
+              UserKanjiProgress
+              |> Ash.Changeset.for_create(:initialize, %{user_id: user_id, kanji_id: kanji_id})
+              |> Ash.create()
+
+            {:error, reason} ->
+              Logger.error("[SRS.Logic] Error checking progress existence: #{inspect(reason)}")
+              {:error, reason}
+          end
+
+        {:ok, []} ->
+          Logger.error("[SRS.Logic] Kanji not found with ID: #{kanji_id}")
+          {:error, :kanji_not_found}
+
+        {:error, reason} ->
+          Logger.error("[SRS.Logic] Error finding kanji: #{inspect(reason)}")
+          {:error, reason}
+      end
+    rescue
+      e ->
+        Logger.error(
+          "[SRS.Logic] Exception in initialize_progress: #{inspect(e)}\n#{Exception.format_stacktrace(__STACKTRACE__)}"
+        )
+
+        {:error, :exception, e}
     end
   end
 
@@ -139,6 +164,17 @@ defmodule KumaSanKanji.SRS.Logic do
         stats = calculate_user_stats(progress_records)
         {:ok, stats}
 
+      {:error, %Ash.Error.Query.NotFound{}} ->
+        # Return empty stats for new users
+        {:ok,
+         %{
+           total_kanji: 0,
+           due_today: 0,
+           total_reviews: 0,
+           correct_reviews: 0,
+           accuracy: 0.0
+         }}
+
       {:error, reason} ->
         {:error, reason}
     end
@@ -157,7 +193,6 @@ defmodule KumaSanKanji.SRS.Logic do
   """
   def bulk_initialize_progress(user_id, kanji_ids)
       when is_binary(user_id) and is_list(kanji_ids) do
-
     # Validate kanji_ids list
     if length(kanji_ids) > 100 do
       {:error, :too_many_kanji}
@@ -174,11 +209,184 @@ defmodule KumaSanKanji.SRS.Logic do
     end
   end
 
+  @doc """
+  Resets all quiz progress for a user and prepares kanji for immediate review (dev mode only).
+
+  ## Parameters
+  - user_id: UUID of the user
+  - options: Keyword list with options
+    - :limit - Number of kanji to prepare for immediate review (default: 10)
+    - :immediate - If true, makes kanji due immediately (default: true)
+
+  ## Returns
+  {:ok, %{cleared: integer, initialized: integer}} | {:error, reason}
+  """
+  def reset_user_progress(user_id, options \\ []) when is_binary(user_id) do
+    if Mix.env() == :dev do
+      require Logger
+      import Ash.Query
+
+      # Get the number of kanji to initialize
+      limit = Keyword.get(options, :limit, 10)
+
+      # The immediate option is no longer needed as records are created with immediate due dates by default
+      make_immediate = Keyword.get(options, :immediate, true)
+
+      Logger.debug(
+        "[SRS.Logic] Resetting progress for user #{user_id} (limit: #{limit}, immediate: #{make_immediate})"
+      )
+
+      # Step 1: Delete all UserKanjiProgress records for this user - with detailed error handling
+      delete_result =
+        try do
+          case UserKanjiProgress |> filter(user_id == ^user_id) |> Ash.read() do
+            {:ok, progress_records}
+            when is_list(progress_records) and length(progress_records) > 0 ->
+              Logger.debug(
+                "[SRS.Logic] Found #{length(progress_records)} existing progress records to delete"
+              )
+
+              results =
+                Enum.map(progress_records, fn record ->
+                  # Create a proper destroy changeset using the record itself
+                  Logger.debug("[SRS.Logic] Deleting record ID: #{record.id}")
+                  Ash.Changeset.for_destroy(record, :destroy) |> Ash.destroy()
+                end)
+
+              errors = Enum.filter(results, &match?({:error, _}, &1))
+
+              if errors == [] do
+                {:ok, length(progress_records)}
+              else
+                Logger.error("[SRS.Logic] Errors when deleting progress: #{inspect(errors)}")
+                {:error, errors}
+              end
+
+            {:ok, []} ->
+              # No progress records found, which is fine - just continue with initialization
+              Logger.debug("[SRS.Logic] No existing progress records found for user #{user_id}")
+              {:ok, 0}
+
+            {:error, %Ash.Error.Query.NotFound{} = error} ->
+              # Not found is also fine - just continue with initialization
+              Logger.debug(
+                "[SRS.Logic] No progress records table found for user #{user_id}: #{inspect(error)}"
+              )
+
+              {:ok, 0}
+
+            {:error, reason} ->
+              Logger.error("[SRS.Logic] Failed to read progress records: #{inspect(reason)}")
+              {:error, reason}
+          end
+        rescue
+          e ->
+            Logger.error(
+              "[SRS.Logic] Exception in delete operation: #{inspect(e)}\n#{Exception.format_stacktrace(__STACKTRACE__)}"
+            )
+
+            {:error, :exception, e}
+        end
+
+      # Step 2: Create new progress for a few kanji with immediate due date
+      case delete_result do
+        {:ok, cleared_count} ->
+          # Get kanji IDs for initialization
+          Logger.debug("[SRS.Logic] Finding #{limit} kanji for initialization...")
+
+          try do
+            kanji_ids_result =
+              Kanji
+              |> Ash.Query.select([:id, :character, :grade])
+              # Start with easier kanji first
+              |> Ash.Query.sort(grade: :asc)
+              |> Ash.Query.limit(limit)
+              |> Ash.read()
+
+            case kanji_ids_result do
+              {:ok, kanji_list} when is_list(kanji_list) and length(kanji_list) > 0 ->
+                kanji_ids = Enum.map(kanji_list, & &1.id)
+                kanji_chars = Enum.map_join(kanji_list, ", ", & &1.character)
+
+                Logger.debug("[SRS.Logic] Initializing progress for kanji: #{kanji_chars}")
+
+                # Initialize progress for these kanji
+                try do
+                  Logger.debug(
+                    "[SRS.Logic] Calling bulk_initialize_progress with #{length(kanji_ids)} kanji IDs"
+                  )
+
+                  init_result = bulk_initialize_progress(user_id, kanji_ids)
+
+                  case init_result do
+                    {:ok, initialized_progress}
+                    when is_list(initialized_progress) and length(initialized_progress) > 0 ->
+                      # The progress records are already initialized with the current date as next_review_date
+                      # so we don't need to update them separately
+                      Logger.debug(
+                        "[SRS.Logic] Successfully reset progress. Cleared: #{cleared_count}, Initialized: #{length(initialized_progress)}"
+                      )
+
+                      {:ok, %{cleared: cleared_count, initialized: length(initialized_progress)}}
+
+                    {:ok, []} ->
+                      Logger.error(
+                        "[SRS.Logic] No progress records were created during initialization"
+                      )
+
+                      {:error, :no_progress_created}
+
+                    {:error, init_error} ->
+                      Logger.error(
+                        "[SRS.Logic] Failed to initialize progress: #{inspect(init_error)}"
+                      )
+
+                      {:error, init_error}
+                  end
+                rescue
+                  e ->
+                    Logger.error(
+                      "[SRS.Logic] Exception in bulk_initialize_progress: #{inspect(e)}\n#{Exception.format_stacktrace(__STACKTRACE__)}"
+                    )
+
+                    {:error, :exception, e}
+                end
+
+              {:ok, []} ->
+                Logger.error("[SRS.Logic] No kanji found for initialization")
+                {:error, :no_kanji_available}
+
+              {:error, kanji_error} ->
+                Logger.error(
+                  "[SRS.Logic] Failed to get kanji for initialization: #{inspect(kanji_error)}"
+                )
+
+                {:error, kanji_error}
+            end
+          rescue
+            e ->
+              Logger.error(
+                "[SRS.Logic] Exception finding kanji: #{inspect(e)}\n#{Exception.format_stacktrace(__STACKTRACE__)}"
+              )
+
+              {:error, :exception, e}
+          end
+
+        {:error, reason} ->
+          Logger.error("[SRS.Logic] Error during progress reset: #{inspect(reason)}")
+          {:error, reason}
+      end
+    else
+      {:error, :not_allowed}
+    end
+  end
+
   # Private helper functions
 
   defp sanitize_limit(limit) when is_integer(limit) and limit > 0 and limit <= 50, do: limit
   defp sanitize_limit(limit) when is_integer(limit) and limit > 50, do: 50
   defp sanitize_limit(_), do: 10
+
   defp load_kanji_data(progress_records) do
     # Extract kanji IDs and load them efficiently
     kanji_ids = Enum.map(progress_records, & &1.kanji_id)
@@ -241,6 +449,32 @@ defmodule KumaSanKanji.SRS.Logic do
     end)
   end
 
+  defp parse_naive_date(val) do
+    cond do
+      is_nil(val) ->
+        nil
+
+      is_struct(val, NaiveDateTime) ->
+        val
+
+      is_struct(val, DateTime) ->
+        DateTime.to_naive(val)
+
+      is_binary(val) ->
+        # Remove trailing Z if present
+        date_str = if String.ends_with?(val, "Z"), do: String.trim_trailing(val, "Z"), else: val
+
+        case NaiveDateTime.from_iso8601(date_str) do
+          {:ok, naive, _} -> naive
+          {:ok, naive} -> naive
+          _ -> nil
+        end
+
+      true ->
+        nil
+    end
+  end
+
   defp calculate_user_stats(progress_records) do
     now = DateTime.utc_now()
 
@@ -249,7 +483,8 @@ defmodule KumaSanKanji.SRS.Logic do
     due_today =
       progress_records
       |> Enum.count(fn record ->
-        DateTime.compare(record.next_review_date, now) != :gt
+        review_date = parse_naive_date(record.next_review_date)
+        review_date && NaiveDateTime.compare(review_date, DateTime.to_naive(now)) != :gt
       end)
 
     {total_reviews, correct_reviews} =
@@ -270,19 +505,36 @@ defmodule KumaSanKanji.SRS.Logic do
   end
 
   defp process_batch(user_id, kanji_ids) do
-    results =
-      Enum.map(kanji_ids, fn kanji_id ->
-        initialize_progress(user_id, kanji_id)
-      end)
+    require Logger
 
-    # Check if all succeeded
-    if Enum.all?(results, &match?({:ok, _}, &1)) do
-      success_results = Enum.map(results, fn {:ok, result} -> result end)
-      {:ok, success_results}
-    else
-      # Find first error
-      error_result = Enum.find(results, &match?({:error, _}, &1))
-      error_result
+    Logger.debug("[SRS.Logic] Processing batch of #{length(kanji_ids)} kanji")
+
+    try do
+      results =
+        Enum.map(kanji_ids, fn kanji_id ->
+          # Add more detailed logging for debugging
+          result = initialize_progress(user_id, kanji_id)
+          Logger.debug("[SRS.Logic] Initialized kanji #{kanji_id}: #{inspect(result)}")
+          result
+        end)
+
+      # Check if all succeeded
+      if Enum.all?(results, &match?({:ok, _}, &1)) do
+        success_results = Enum.map(results, fn {:ok, result} -> result end)
+        {:ok, success_results}
+      else
+        # Find first error
+        error_result = Enum.find(results, &match?({:error, _}, &1))
+        Logger.error("[SRS.Logic] Error in batch processing: #{inspect(error_result)}")
+        error_result
+      end
+    rescue
+      e ->
+        Logger.error(
+          "[SRS.Logic] Exception in process_batch: #{inspect(e)}\n#{Exception.format_stacktrace(__STACKTRACE__)}"
+        )
+
+        {:error, :exception, e}
     end
   end
 
@@ -320,11 +572,12 @@ defmodule KumaSanKanji.SRS.Logic do
             record.kanji_id not in current_kanji_ids
           end)
 
-        removed_count = if remove_orphaned do
-          remove_orphaned_progress(orphaned_records)
-        else
-          0
-        end
+        removed_count =
+          if remove_orphaned do
+            remove_orphaned_progress(orphaned_records)
+          else
+            0
+          end
 
         if notify_user and removed_count > 0 do
           # In a real application, this would send a notification

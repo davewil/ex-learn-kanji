@@ -15,7 +15,9 @@ defmodule KumaSanKanjiWeb.UserLiveAuthTest do
 
     test "assigns current_user if session is valid", %{user: user, session_data: session_data} do
       session = %{"user_id" => session_data["user_id"], "token" => session_data["token"]}
-      {:cont, new_socket} = UserLiveAuth.on_mount(:mount_current_user, %{}, session, %Phoenix.LiveView.Socket{})
+
+      {:cont, new_socket} =
+        UserLiveAuth.on_mount(:mount_current_user, %{}, session, %Phoenix.LiveView.Socket{})
 
       assert new_socket.assigns.current_user.id == user.id
     end
@@ -23,13 +25,20 @@ defmodule KumaSanKanjiWeb.UserLiveAuthTest do
     test "assigns nil if session is invalid", %{} do
       invalid_session = %{"user_id" => Ecto.UUID.generate(), "token" => "invalid_token"}
 
-      {:cont, new_socket} = UserLiveAuth.on_mount(:mount_current_user, %{}, invalid_session, %Phoenix.LiveView.Socket{})
+      {:cont, new_socket} =
+        UserLiveAuth.on_mount(
+          :mount_current_user,
+          %{},
+          invalid_session,
+          %Phoenix.LiveView.Socket{}
+        )
 
       assert new_socket.assigns.current_user == nil
     end
 
     test "assigns nil if session is empty" do
-      {:cont, new_socket} = UserLiveAuth.on_mount(:mount_current_user, %{}, %{}, %Phoenix.LiveView.Socket{})
+      {:cont, new_socket} =
+        UserLiveAuth.on_mount(:mount_current_user, %{}, %{}, %Phoenix.LiveView.Socket{})
 
       assert new_socket.assigns.current_user == nil
     end
@@ -45,7 +54,11 @@ defmodule KumaSanKanjiWeb.UserLiveAuthTest do
       %{user: user, session_data: session_data, socket: socket}
     end
 
-    test "continues if user is authenticated", %{user: user, session_data: session_data, socket: socket} do
+    test "continues if user is authenticated", %{
+      user: user,
+      session_data: session_data,
+      socket: socket
+    } do
       session = %{"user_id" => session_data["user_id"], "token" => session_data["token"]}
 
       {:cont, new_socket} = UserLiveAuth.on_mount(:ensure_authenticated, %{}, session, socket)

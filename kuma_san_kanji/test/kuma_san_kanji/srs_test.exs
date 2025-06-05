@@ -6,7 +6,7 @@ defmodule KumaSanKanji.SRSTest do
   alias KumaSanKanji.SRS.Logic
 
   require Ash.Query
-  
+
   describe "SRS Logic Module" do
     test "module functions are available" do
       # These are regular module functions, not Ash resource actions
@@ -26,6 +26,7 @@ defmodule KumaSanKanji.SRSTest do
       assert true
     end
   end
+
   describe "UserKanjiProgress Resource" do
     test "has required actions" do
       # Check that the resource has the required actions
@@ -72,7 +73,8 @@ defmodule KumaSanKanji.SRSTest do
     test "SM-2 algorithm constants are properly defined" do
       # Test that the module has the required constants and functions
       # for the SM-2 algorithm implementation
-      assert true  # Will be expanded when we can test actual calculations
+      # Will be expanded when we can test actual calculations
+      assert true
     end
   end
 
@@ -99,7 +101,8 @@ defmodule KumaSanKanji.SRSTest do
       # 3. Get due kanji
       # 4. Record review results
       # 5. Verify SRS state updates
-      assert true  # Placeholder for full integration test
+      # Placeholder for full integration test
+      assert true
     end
   end
 end

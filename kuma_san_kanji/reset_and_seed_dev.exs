@@ -1,6 +1,7 @@
 defmodule ResetAndSeed do
   def run do
-    IO.puts("Starting database reset...")    # Reset the database
+    # Reset the database
+    IO.puts("Starting database reset...")
     Mix.Task.run("ash_sqlite.drop")
     Mix.Task.run("ash_sqlite.generate")
     Mix.Task.run("ash_sqlite.create")
@@ -16,9 +17,11 @@ defmodule ResetAndSeed do
     case Ash.read(KumaSanKanji.Kanji.Kanji) do
       {:ok, kanjis} ->
         IO.puts("Verification: Found #{length(kanjis)} kanji records in the database.")
+
         Enum.each(kanjis, fn kanji ->
           IO.puts("Kanji: #{kanji.character}")
         end)
+
       _ ->
         IO.puts("Error: Could not verify kanji data.")
     end
