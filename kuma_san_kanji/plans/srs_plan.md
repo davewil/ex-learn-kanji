@@ -49,7 +49,8 @@ This plan details the steps to implement a secure, accessible, and testable Spac
 - Add skip-to-content links or landmark navigation for keyboard users.
 - Ensure all interactive elements are operable via assistive technologies (e.g., voice control, switch devices).
 - Document keyboard shortcuts and accessible navigation in the UI.
-- Style the UI with Tailwind CSS and oklch colors.
+- Style the UI with Tailwind CSS and oklch colors, ensuring consistency with the existing design system.
+- **Design System Compliance**: Follow the established color palette (neon and sakura colors in oklch), typography (katakana-inspired fonts), and component styling patterns used throughout the application.
 - Implement pagination or lazy loading if the kanji dataset is large, with loading indicators and error handling for paginated data.
 - Define sorting/filtering strategies for paginated/lazy-loaded data and ensure user progress is persisted across pages.
 - Optimize queries and indexes for large datasets.
@@ -157,7 +158,7 @@ This plan details the steps to implement a secure, accessible, and testable Spac
 2. Implement the SRS logic module.
 3. Build the Quiz LiveView interface.
 4. Write integration and resource tests.
-5. Style the UI with Tailwind CSS and oklch colors.
+5. Style the UI with Tailwind CSS and oklch colors, maintaining design system consistency.
 6. Add accessibility, error handling, and performance improvements.
 7. Update documentation and ensure all user-facing text is localizable.
 8. Add monitoring and analytics for quiz usage and errors.
