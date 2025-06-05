@@ -32,12 +32,11 @@ defmodule KumaSanKanjiWeb.Router do
     post "/login", AuthController, :login
     delete "/logout", AuthController, :logout
   end
-
   # Protected routes that require authentication
   scope "/", KumaSanKanjiWeb do
     pipe_through [:browser, :require_auth]
 
-    # We'll add protected routes here later
+    live "/quiz", QuizLive
   end
 
   # Other scopes may use custom stacks.

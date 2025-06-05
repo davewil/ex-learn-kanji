@@ -7,5 +7,6 @@ defmodule KumaSanKanji.Domain do
     resource KumaSanKanji.Kanji.Meaning
     resource KumaSanKanji.Kanji.Pronunciation
     resource KumaSanKanji.Kanji.ExampleSentence
+    resource KumaSanKanji.SRS.UserKanjiProgress
   end
 end
