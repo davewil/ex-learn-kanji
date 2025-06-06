@@ -14,6 +14,10 @@
 - Ensure that authentication and authorization are properly implemented.
 - Use HTTPS for all communications to protect data in transit.
 
+## Using Ash Framework
+
+- [Using Ash Framework](instructions/ash-rules.instructions.md)
+
 ## Change logging
 
 - Each time you generate code, note the changes in changelog.md.

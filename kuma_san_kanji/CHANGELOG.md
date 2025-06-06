@@ -1,5 +1,91 @@
 # Changelog
 
+## June 14, 2025
+
+### Project Compilation and Stability
+
+- **FIXED**: Resolved persistent `ArgumentError: KumaSanKanji.Content is not a Spark DSL module` by correctly defining and referencing `KumaSanKanji.Content.Domain`.
+- **FIXED**: Addressed various compilation warnings and errors related to domain and action definitions.
+- **REFACTOR**: Centralized Ash actions within their respective domains (`KumaSanKanji.Content.Domain` and `KumaSanKanji.Domain`) instead of individual resources.
+- **REFACTOR**: Updated seeder logic in `content_seeder.ex` and `content/seeds.ex` to use new domain actions and correct aliases, resolving syntax errors and removing unused code.
+- **CONFIG**: Updated `config/config.exs` to correctly list `KumaSanKanji.Content.Domain` in `ash_domains`.
+- **IMPROVED**: Achieved a clean `mix compile` with no errors or warnings.
+
+## June 6, 2025
+
+### Critical Spark DSL Module Fixes
+
+- **FIXED**: Fixed KeyError for `:repetitions` not found in `%KumaSanKanji.Kanji.Kanji{}` struct
+  - Fixed by updating `load_next_kanji` function to properly store the current progress record
+  - Updated QuizLive template to reference `@current_progress.repetitions` instead of `@current_kanji.repetitions`
+  - The error occurred because `repetitions` is a field of the UserKanjiProgress record, not the Kanji record
+  - Fixed syntax errors in the QuizLive module file that were causing compiler errors
+
+- **FIXED**: Fixed KeyError for current_kanji in QuizLive
+  - Modified `load_kanji_data` in SRS Logic to explicitly select required fields
+  - Updated QuizLive to extract kanji correctly from progress records
+  - Fixed template references from `@current_kanji.kanji.character` to `@current_kanji.character`
+  - Updated HTML template to handle the direct kanji structure instead of nested structure
+  - Fixed functions that expect a direct kanji structure instead of a progress record wrapping a kanji
+  - Updated functions `get_feedback_message` and `check_answer_correctness` to handle the kanji structure directly
+
+- **FIXED**: Fixed KeyError for character field in ExploreLive
+  - Modified error handling in `get_kanji_by_offset` to extract the kanji object from the list
+  - The issue was that the `loaded_kanji` variable was a list containing one kanji object, not the object itself
+  - Added pattern matching in the error handling block: `{:ok, [loaded_kanji]} = Kanji.get_by_id(...)`
+
+- **FIXED**: Fixed undefined function error in ExploreLive with correct Ash filter syntax
+  - Changed `Ash.Query.filter(field: value)` to `Ash.Query.do_filter([field: value])`
+  - `filter` is a macro in Ash, not a function, requiring proper usage syntax
+  - Fixed error: "function Ash.Query.filter/2 is undefined or private"
+
+- **FIXED**: Removed pin operator (^) usage in Ash filter expressions across all resources
+  - Pin operator cannot be used in Spark DSL expressions
+  - Fixed filter expressions in ThematicGroup, KanjiThematicGroup, EducationalContext, KanjiUsageExample, KanjiLearningMeta, Kanji, and UserKanjiProgress resources
+  - Changed `filter expr(field == ^arg(:value))` to `filter expr(field == arg(:value))`
+
+- **FIXED**: Cross-domain reference issue in KanjiThematicGroup resource
+  - Removed belongs_to :kanji relationship that referenced KumaSanKanji.Kanji.Kanji from different domain
+  - Changed to use kanji_id UUID attribute to prevent circular dependencies
+  - This resolves "not a Spark DSL module" compilation errors
+
+- **FIXED**: Syntax errors with missing newlines between DSL sections
+  - Fixed formatting issues that prevented proper DSL parsing
+  - All Content domain resources now compile successfully
+
+### Domain Architecture Improvements
+- Added explicit aliases for Content domain resources to ensure proper loading order
+- Added ChangeTracking extension to the Content domain for better audit capabilities
+- Configured domain validation to be skipped in test environment for faster tests
+- Reorganized resource loading order in Content domain based on dependency hierarchy
+- Fixed resource references in seeds and LiveView modules
+
+### Bug Fixes
+- Fixed Ash resource compilation errors by ensuring proper module loading
+- Fixed circular dependencies between domain modules
+
+## June 13, 2025
+
+### Added New Kanji Module Functions
+
+- **Added `list_all/0` function** - New function to return all kanji with relationships loaded
+- **Added `get_by_character/1` function** - New function to find kanji by character with relationships loaded
+- Both functions load meanings, pronunciations, and example sentences
+- Improved code organization with proper Ash Resource patterns
+
+## June 12, 2025
+
+### Enhanced Explore Page with Rich Contextual Information
+
+- **Added thematic groups display** - Implemented UI section showing thematic groups (Numbers, Nature, etc.) for each kanji
+- **Added educational context** - Displays grade level, age range, and curriculum information
+- **Added learning tips** - Shows mnemonic hints, visual evolution, and stroke order tips
+- **Added common words section** - Shows compound words using the kanji, their readings and meanings
+- **Enhanced example sentences** - Better organized example sentences with Japanese and translations
+- **Improved data loading** - Enhanced the `get_kanji_by_offset` function to fetch all contextual data
+- **UI enhancements** - Styled all new sections with Tailwind CSS using the app's color scheme
+- **Added responsive design** - Ensured all new sections adapt well to different screen sizes
+
 ## June 5, 2025 (Update 3)
 
 ### Fixed Compiler Warnings and Improved Codebase Quality

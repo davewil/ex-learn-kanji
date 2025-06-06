@@ -108,12 +108,10 @@
           </div>
         </div>
       <% end %>
-    </header>
-
-    <!-- Main content area -->
+    </header>    <!-- Main content area -->
     <main id="main-content" class="max-w-4xl mx-auto" role="main">
       
-      <%= if is_nil(@current_kanji) do %>
+      <%= if @quiz_error or is_nil(@current_kanji) do %>
         <!-- No kanji available -->
         <div class="text-center py-16" role="region" aria-label="No reviews available">
           <div class="bg-white/80 backdrop-blur-sm rounded-xl p-8 shadow-sm border border-oklch(0.9_0.02_250)">
@@ -158,28 +156,25 @@
           <div class="bg-white/80 backdrop-blur-sm rounded-xl shadow-sm border border-oklch(0.9_0.02_250)" role="region" aria-label="Current kanji">
             <div class="p-8 text-center">
               <!-- Kanji character display -->
-              <div class="mb-6">
-                <div class="inline-flex items-center justify-center w-32 h-32 bg-gradient-to-br from-oklch(0.95_0.02_250) to-oklch(0.98_0.01_280) rounded-2xl border-2 border-oklch(0.9_0.02_250) shadow-inner" role="img" aria-label={"Kanji character: " <> @current_kanji.kanji.character}>
+              <div class="mb-6">                <div class="inline-flex items-center justify-center w-32 h-32 bg-gradient-to-br from-oklch(0.95_0.02_250) to-oklch(0.98_0.01_280) rounded-2xl border-2 border-oklch(0.9_0.02_250) shadow-inner" role="img" aria-label={"Kanji character: " <> @current_kanji.character}>
                   <span class="text-7xl font-bold text-oklch(0.2_0.1_250) select-none">
-                    {@current_kanji.kanji.character}
+                    {@current_kanji.character}
                   </span>
                 </div>
               </div>
-              <!-- Kanji metadata -->
-              <div class="mb-6 text-sm text-oklch(0.4_0.05_250)">
-                <p>Grade: {@current_kanji.kanji.grade || "N/A"} |
-                  Strokes: {@current_kanji.kanji.stroke_count} |
-                  JLPT: {@current_kanji.kanji.jlpt_level || "N/A"}</p>
+              <!-- Kanji metadata -->              <div class="mb-6 text-sm text-oklch(0.4_0.05_250)">
+                <p>Grade: {@current_kanji.grade || "N/A"} |
+                  Strokes: {@current_kanji.stroke_count} |
+                  JLPT: {@current_kanji.jlpt_level || "N/A"}</p>
               </div>
               <!-- Progress indicator -->
               <div class="mb-6">
                 <div class="flex items-center justify-center space-x-2 text-xs text-oklch(0.5_0.05_250)">
                   <span>Progress:</span>
-                  <div class="flex space-x-1">
-                    <%= for i <- 1..5 do %>
-                      <div class={["w-2 h-2 rounded-full", if(@current_kanji.repetitions >= i, do: "bg-oklch(0.6_0.15_120)", else: "bg-oklch(0.9_0.02_250)")]} aria-hidden="true"></div>
+                  <div class="flex space-x-1">                    <%= for i <- 1..5 do %>
+                      <div class={["w-2 h-2 rounded-full", if(@current_progress.repetitions >= i, do: "bg-oklch(0.6_0.15_120)", else: "bg-oklch(0.9_0.02_250)")]} aria-hidden="true"></div>
                     <% end %>
-                    <span class="ml-2">Rep: {@current_kanji.repetitions}</span>
+                    <span class="ml-2">Rep: {@current_progress.repetitions}</span>
                   </div>
                 </div>
               </div>

@@ -3,7 +3,9 @@ defmodule KumaSanKanji.Domain do
 
   resources do
     resource(KumaSanKanji.Accounts.User)
-    resource(KumaSanKanji.Kanji.Kanji)
+    resource(KumaSanKanji.Kanji.Kanji) do
+      define :read_kanji, action: :read
+    end
     resource(KumaSanKanji.Kanji.Meaning)
     resource(KumaSanKanji.Kanji.Pronunciation)
     resource(KumaSanKanji.Kanji.ExampleSentence)

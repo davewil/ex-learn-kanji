@@ -12,13 +12,16 @@ defmodule KumaSanKanjiWeb.ExploreLive do
         current_offset = 0
 
         case get_kanji_by_offset(current_offset) do
-          {:ok, kanji} ->
+          {:ok, kanji, thematic_info, learning_meta, usage_examples} ->
             {:ok,
              assign(socket,
                kanji: kanji,
                current_offset: current_offset,
                total_kanji: total_kanji,
-               is_authenticated: is_authenticated
+               is_authenticated: is_authenticated,
+               thematic_info: thematic_info,
+               learning_meta: learning_meta,
+               usage_examples: usage_examples
              )}
 
           _ ->
@@ -28,7 +31,10 @@ defmodule KumaSanKanjiWeb.ExploreLive do
                kanji: nil,
                current_offset: 0,
                total_kanji: 0,
-               is_authenticated: is_authenticated
+               is_authenticated: is_authenticated,
+               thematic_info: nil,
+               learning_meta: nil,
+               usage_examples: []
              )}
         end
 
@@ -39,7 +45,10 @@ defmodule KumaSanKanjiWeb.ExploreLive do
            kanji: nil,
            current_offset: 0,
            total_kanji: 0,
-           is_authenticated: is_authenticated
+           is_authenticated: is_authenticated,
+           thematic_info: nil,
+           learning_meta: nil,
+           usage_examples: []
          )}
     end
   end
@@ -57,22 +66,53 @@ defmodule KumaSanKanjiWeb.ExploreLive do
       end
 
     case get_kanji_by_offset(new_offset) do
-      {:ok, kanji} ->
-        {:noreply, assign(socket, kanji: kanji, current_offset: new_offset)}
+      {:ok, kanji, thematic_info, learning_meta, usage_examples} ->
+        {:noreply,
+         assign(socket,
+           kanji: kanji,
+           current_offset: new_offset,
+           thematic_info: thematic_info,
+           learning_meta: learning_meta,
+           usage_examples: usage_examples
+         )}
 
       _ ->
         # Error fetching, or no kanji, keep current state or show error
         {:noreply, socket}
     end
   end
-
   defp get_kanji_by_offset(offset) do
     case Kanji.by_offset(offset) do
       {:ok, [kanji | _]} ->
         # Load relationships
-        case Kanji.get_by_id(kanji.id, load: [:meanings, :pronunciations, :example_sentences]) do
-          {:ok, [loaded_kanji]} -> {:ok, loaded_kanji}
-          error -> error
+        with {:ok, [loaded_kanji]} <- Kanji.get_by_id(kanji.id, load: [:meanings, :pronunciations, :example_sentences]),
+             # Load thematic groups
+             {:ok, thematic_groups, kanji_thematic_groups} <- KumaSanKanji.ContentContext.get_thematic_group_for_kanji(kanji.id),
+             # Load educational context (grade level)
+             edu_context <- (if loaded_kanji.grade, 
+                            do: KumaSanKanji.ContentContext.get_educational_context(loaded_kanji.grade), 
+                            else: {:ok, []}),
+             # Load learning metadata
+             {:ok, learning_meta} <- KumaSanKanji.ContentContext.get_learning_meta(kanji.id), 
+             # Load usage examples
+             {:ok, usage_examples} <- KumaSanKanji.ContentContext.get_usage_examples(kanji.id) do
+          
+          # Create thematic info map with groups and join tables
+          thematic_info = %{
+            groups: thematic_groups,
+            joins: kanji_thematic_groups,
+            edu_context: case edu_context do
+              {:ok, [context]} -> context
+              _ -> nil
+            end
+          }
+
+          # Return all collected data
+          {:ok, loaded_kanji, thematic_info, learning_meta, usage_examples}        else
+          _error -> 
+            # Return partial data if we at least have the kanji
+            {:ok, [loaded_kanji]} = Kanji.get_by_id(kanji.id, load: [:meanings, :pronunciations, :example_sentences])
+            {:ok, loaded_kanji, %{groups: [], joins: [], edu_context: nil}, [], []}
         end
 
       {:ok, []} ->
@@ -134,6 +174,65 @@ defmodule KumaSanKanjiWeb.ExploreLive do
               </div>
             </div>
             
+            <!-- Thematic Groups Section -->
+            <div :if={@thematic_info.groups != []}>
+              <h3 class="text-lg font-semibold text-accent-blue font-display mb-2">Thematic Groups</h3>
+              
+              <div class="mb-6 flex flex-wrap gap-2">
+                <%= for group <- @thematic_info.groups do %>
+                  <% 
+                    # Find the join entry for this group to get the subgroup if any
+                    join_entry = Enum.find(@thematic_info.joins, fn j -> j.thematic_group_id == group.id end)
+                    subgroup = if join_entry, do: join_entry.subgroup 
+                  %>
+                  <span class="inline-flex items-center rounded-md bg-accent-blue/10 border border-accent-blue px-3 py-1">
+                    <span class="font-medium text-accent-blue">{group.name}</span>
+                    <%= if subgroup do %>
+                      <span class="ml-1 text-xs font-katakana text-gray-600">({subgroup})</span>
+                    <% end %>
+                  </span>
+                <% end %>
+              </div>
+            </div>
+
+            <!-- Educational Context Section -->
+            <div :if={@thematic_info.edu_context}>
+              <h3 class="text-lg font-semibold text-accent-green font-display mb-2">Educational Context</h3>
+              
+              <div class="mb-6 bg-gray-50 rounded-md p-4 border border-accent-green/30">
+                <div class="flex justify-between">
+                  <span class="font-medium">Grade {assigns.thematic_info.edu_context.grade}</span>
+                  <span class="text-gray-600 font-katakana">{assigns.thematic_info.edu_context.age_range}</span>
+                </div>
+                <p class="text-gray-600 mt-2 text-sm">{assigns.thematic_info.edu_context.description}</p>
+              </div>
+            </div>
+            
+            <!-- Learning Metadata Section -->
+            <div :if={@learning_meta != []}>
+              <h3 class="text-lg font-semibold text-accent-yellow font-display mb-2">Learning Tips</h3>
+              
+              <div class="mb-6 bg-gray-50 rounded-md p-4 border border-accent-yellow/30">
+                <%= for meta <- @learning_meta do %>
+                  <div class="mb-3 last:mb-0">
+                    <div class="font-medium">{meta.mnemonic_hint}</div>
+                    
+                    <%= if meta.stroke_order_tips do %>
+                      <p class="text-sm text-gray-600 mt-1">
+                        <strong>Stroke Tips:</strong> {meta.stroke_order_tips}
+                      </p>
+                    <% end %>
+                    
+                    <%= if meta.visual_evolution do %>
+                      <p class="text-sm text-gray-600 mt-1">
+                        <strong>Origin:</strong> {meta.visual_evolution}
+                      </p>
+                    <% end %>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+
             <h3 class="text-lg font-semibold text-accent-green font-display mb-2">Meanings</h3>
             
             <ul class="mb-6 list-disc pl-6">
@@ -175,6 +274,42 @@ defmodule KumaSanKanjiWeb.ExploreLive do
                     </li>
                   <% end %>
                 </ul>
+              </div>
+            </div>
+            
+            <!-- Usage Examples Section -->
+            <div :if={@usage_examples != []}>
+              <h3 class="text-lg font-semibold text-accent-orange font-display mb-2">Common Words</h3>
+              
+              <div class="mb-6">
+                <div class="overflow-hidden bg-gray-50 rounded-md border border-accent-orange/30">
+                  <ul role="list" class="divide-y divide-accent-orange/30">
+                    <%= for example <- @usage_examples do %>
+                      <li class="p-4">
+                        <div class="flex justify-between">
+                          <span class="font-medium jp-text text-gray-800">
+                            {example.compound}
+                            <span class="ml-1 text-sm font-katakana text-gray-600">
+                              {example.reading} ({example.romaji})
+                            </span>
+                          </span>
+                          
+                          <span class="rounded-full bg-accent-orange/10 border border-accent-orange px-2.5 py-0.5 text-xs font-medium text-accent-orange">
+                            Level {example.common_level}
+                          </span>
+                        </div>
+                        <p class="text-gray-700 mt-1">{example.meaning}</p>
+                        
+                        <%= if example.example_sentence do %>
+                          <div class="mt-2 text-sm bg-white p-2 rounded border border-gray-200">
+                            <p class="jp-text">{example.example_sentence}</p>
+                            <p class="text-gray-600 mt-1">{example.translation}</p>
+                          </div>
+                        <% end %>
+                      </li>
+                    <% end %>
+                  </ul>
+                </div>
               </div>
             </div>
             

@@ -76,6 +76,7 @@ defmodule KumaSanKanjiWeb.QuizLive do
   def handle_event("submit_answer", %{"answer" => answer}, socket) do
     user = socket.assigns.current_user
     current_kanji = socket.assigns.current_kanji
+    current_progress = socket.assigns.current_progress
 
     # Rate limiting check
     case check_rate_limit(socket) do
@@ -83,7 +84,7 @@ defmodule KumaSanKanjiWeb.QuizLive do
         # Validate and sanitize user input
         case validate_and_sanitize_answer(answer) do
           {:ok, sanitized_answer} ->
-            process_answer(socket, user, current_kanji, sanitized_answer)
+            process_answer(socket, user, current_kanji, current_progress, sanitized_answer)
 
           {:error, reason} ->
             socket =
@@ -109,13 +110,12 @@ defmodule KumaSanKanjiWeb.QuizLive do
         {:noreply, socket}
     end
   end
-
   @impl true
   def handle_event("skip_kanji", _params, socket) do
     user = socket.assigns.current_user
-    current_kanji = socket.assigns.current_kanji
+    current_progress = socket.assigns.current_progress
 
-    case Logic.record_review(current_kanji.id, :skip, user.id) do
+    case Logic.record_review(current_progress.id, :skip, user.id) do
       {:ok, _updated_progress} ->
         load_next_kanji(socket)
 
@@ -247,14 +247,25 @@ defmodule KumaSanKanjiWeb.QuizLive do
   defp restore_session_if_exists(_user_id, nil), do: {:error, :no_session_id}
   defp restore_session_if_exists(user_id, session_id) do
     require Logger
-    try do
-      case Session.restore_for_user(user_id, session_id) do
+    try do      case Session.restore_for_user(user_id, session_id) do
         {:ok, session_data} ->
           # Get user stats to include with restored session
           case Logic.get_user_stats(user_id) do
-            {:ok, stats} ->
+            {:ok, stats} ->              # Get progress for the current kanji if available
+              current_progress = case session_data.current_kanji do
+                nil -> nil
+                kanji ->
+                  # Try to get the progress for this kanji
+                  case Logic.get_due_kanji(user_id, 1) do
+                    {:ok, [progress | _]} when progress.kanji.id == kanji.id -> progress
+                    {:ok, _} -> nil
+                    {:error, _} -> nil
+                  end
+              end
+              
               {:ok, %{
                 current_kanji: session_data.current_kanji,
+                current_progress: current_progress,
                 user_stats: stats,
                 quiz_error: false,
                 answers_count: session_data.answers_count || 0,
@@ -272,16 +283,17 @@ defmodule KumaSanKanjiWeb.QuizLive do
         {:error, {:exception, Exception.message(e)}}
     end
   end
-
-  defp save_session_state(socket, user_id) do
-    current_kanji_id = case socket.assigns.current_kanji do
+  defp save_session_state(socket, user_id) do    current_kanji_id = case socket.assigns.current_kanji do
       nil -> nil
       kanji -> kanji.id
     end
-
+    
+    # Include both the kanji and progress data in the session
     session_data = %{
       user_id: user_id,
       current_kanji_id: current_kanji_id,
+      current_kanji: socket.assigns.current_kanji,
+      current_progress: socket.assigns.current_progress,
       answers_count: socket.assigns.answers_count,
       last_answer_times: socket.assigns.last_answer_times
     }
@@ -299,7 +311,6 @@ defmodule KumaSanKanjiWeb.QuizLive do
   end
 
   # Private helper functions
-
   defp initialize_quiz_session(user_id) do
     require Logger
     try do
@@ -309,13 +320,16 @@ defmodule KumaSanKanjiWeb.QuizLive do
         {:ok, stats} -> stats
         {:error, _} -> %{} # New user without stats
       end
-    
       # Check for due kanji
       case Logic.get_due_kanji(user_id, 1) do
-        {:ok, [kanji | _]} ->
+        {:ok, [progress | _]} ->
+          # Keep both the progress record and extract kanji for easy access
+          kanji = progress.kanji
+          
           {:ok,
            %{
              current_kanji: kanji,
+             current_progress: progress,
              user_stats: stats,
              quiz_error: false
            }}
@@ -383,13 +397,13 @@ defmodule KumaSanKanjiWeb.QuizLive do
       :ok
     end
   end
-
-  defp process_answer(socket, user, current_kanji, sanitized_answer) do
+  
+  defp process_answer(socket, user, current_kanji, current_progress, sanitized_answer) do
     # Determine if answer is correct
     is_correct = check_answer_correctness(current_kanji, sanitized_answer)
     result = if is_correct, do: :correct, else: :incorrect
 
-    case Logic.record_review(current_kanji.id, result, user.id) do
+    case Logic.record_review(current_progress.id, result, user.id) do
       {:ok, _updated_progress} ->
         # Update rate limiting tracking
         current_time = System.system_time(:millisecond)
@@ -410,25 +424,29 @@ defmodule KumaSanKanjiWeb.QuizLive do
         save_session_state(socket, user.id)
 
         {:noreply, socket}
-
+      
       {:error, reason} ->
         socket =
           socket
           |> put_flash(:error, "Failed to record answer: #{get_error_message(reason)}")
-
+          
         {:noreply, socket}
     end
   end
-
+  
   defp load_next_kanji(socket) do
     user = socket.assigns.current_user
 
     case Logic.get_due_kanji(user.id, 1) do
-      {:ok, [next_kanji | _]} ->
+      {:ok, [progress | _]} ->
+        # Extract kanji from progress record
+        next_kanji = progress.kanji
+        
         # Reset quiz state for next kanji
         socket =
           socket
           |> assign(:current_kanji, next_kanji)
+          |> assign(:current_progress, progress)  # Save the progress record
           |> assign(:show_feedback, false)
           |> assign(:feedback_message, "")
           |> assign(:feedback_type, :info)
@@ -439,12 +457,13 @@ defmodule KumaSanKanjiWeb.QuizLive do
         save_session_state(socket, user.id)
 
         {:noreply, socket}
-
+        
       {:ok, []} ->
         # No more kanji due for review
         socket =
           socket
           |> assign(:current_kanji, nil)
+          |> assign(:current_progress, nil)  # Clear the progress record
           |> assign(:quiz_complete, true)
           |> assign(:show_feedback, false)
           |> assign(:feedback_message, "")
@@ -464,10 +483,10 @@ defmodule KumaSanKanjiWeb.QuizLive do
         {:noreply, socket}
     end
   end
-
   defp check_answer_correctness(kanji, user_answer) do
     # Check if user answer matches any of the kanji's readings or meanings
-    kanji_data = kanji.kanji
+    # The kanji may be the direct structure or nested within a progress record
+    kanji_data = kanji
 
     normalized_answer = String.downcase(String.trim(user_answer))
 
@@ -487,9 +506,8 @@ defmodule KumaSanKanjiWeb.QuizLive do
 
     meanings_match || readings_match
   end
-
   defp get_feedback_message(:correct, kanji) do
-    kanji_data = kanji.kanji
+    kanji_data = kanji
     meanings = kanji_data.meanings |> Enum.map(& &1.value) |> Enum.join(", ")
     readings = kanji_data.pronunciations |> Enum.map(& &1.value) |> Enum.join(", ")
 
@@ -497,7 +515,7 @@ defmodule KumaSanKanjiWeb.QuizLive do
   end
 
   defp get_feedback_message(:incorrect, kanji) do
-    kanji_data = kanji.kanji
+    kanji_data = kanji
     meanings = kanji_data.meanings |> Enum.map(& &1.value) |> Enum.join(", ")
     readings = kanji_data.pronunciations |> Enum.map(& &1.value) |> Enum.join(", ")
 

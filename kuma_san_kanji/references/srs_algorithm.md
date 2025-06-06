@@ -1,4 +1,5 @@
 # WaniKani's SRS Stages
+
 WaniKani’s SRS spans across nine stages, which are split across five groups.
 
 WaniKani's SRS

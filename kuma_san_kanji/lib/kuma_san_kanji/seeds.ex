@@ -7,8 +7,14 @@ defmodule KumaSanKanji.Seeds do
   alias KumaSanKanji.Kanji.Meaning
   alias KumaSanKanji.Kanji.Pronunciation
   alias KumaSanKanji.Kanji.ExampleSentence
-
   def insert_initial_data do
+    # Insert basic kanji data first
+    insert_kanji_data()
+    # Then insert content domain data that references the kanji
+    KumaSanKanji.Seeds.ContentSeeds.insert_initial_data()
+  end
+
+  defp insert_kanji_data do
     # List of Kanji with their data
     kanji_list = [
       %{

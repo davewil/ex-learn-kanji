@@ -9,22 +9,13 @@ defmodule KumaSanKanji.Kanji.Kanji do
     attribute(:grade, :integer, default: nil)
     attribute(:stroke_count, :integer, default: nil)
     attribute(:jlpt_level, :integer, default: nil)
-    # Added timestamps
     timestamps()
-    # Add a serial ID for ordering if one doesn't exist
-    # If you have a created_at or an auto-incrementing integer primary key, that can be used too.
-    # For simplicity, let's assume you might need to add one or use an existing field.
-    # If :id is already an auto-incrementing integer, you can sort by it.
-    # If not, consider adding an :order_id or using :inserted_at if available and suitable.
   end
 
   relationships do
     has_many(:meanings, KumaSanKanji.Kanji.Meaning, destination_attribute: :kanji_id)
     has_many(:pronunciations, KumaSanKanji.Kanji.Pronunciation, destination_attribute: :kanji_id)
-
-    has_many(:example_sentences, KumaSanKanji.Kanji.ExampleSentence,
-      destination_attribute: :kanji_id
-    )
+    has_many(:example_sentences, KumaSanKanji.Kanji.ExampleSentence, destination_attribute: :kanji_id)
   end
 
   actions do
@@ -34,21 +25,41 @@ defmodule KumaSanKanji.Kanji.Kanji do
       accept([:character, :grade, :stroke_count, :jlpt_level])
     end
 
+    # List all kanji with relationships loaded
+    read :list_all do
+      prepare(fn query, _context ->
+        query
+        |> Ash.Query.load([:meanings, :pronunciations, :example_sentences])
+        |> Ash.Query.sort(:inserted_at)
+      end)
+    end
+    
+    # Get kanji by character with relationships loaded
+    read :get_by_character do
+      argument(:character, :string, allow_nil?: false)
+
+      prepare(fn query, _context ->
+        character = Ash.Query.get_argument(query, :character)
+        query
+        |> Ash.Query.do_filter([character: character])
+        |> Ash.Query.load([:meanings, :pronunciations, :example_sentences])
+        |> Ash.Query.limit(1)
+      end)
+    end
+    
     # Custom read action for getting by ID with relationships
     read :get_by_id do
       argument(:id, :uuid, allow_nil?: false)
 
-      filter(expr(id == ^arg(:id)))
-
       prepare(fn query, _context ->
-        Ash.Query.limit(query, 1)
+        id = Ash.Query.get_argument(query, :id)
+        query
+        |> Ash.Query.do_filter([id: id])
+        |> Ash.Query.load([:meanings, :pronunciations, :example_sentences])
+        |> Ash.Query.limit(1)
       end)
     end
-
-    # Removed the :random action
-    # read :random do
-    #   prepare fn query, context -> KumaSanKanji.Kanji.Kanji.random_offset_preparer(query, context) end
-    # end    # New action to get a Kanji by its order/offset
+      # New action to get a Kanji by its order/offset
     read :by_offset do
       # Argument for the offset
       argument(:offset, :integer, allow_nil?: false)
@@ -60,6 +71,7 @@ defmodule KumaSanKanji.Kanji.Kanji do
         query
         |> Ash.Query.sort(:inserted_at)
         |> Ash.Query.offset(offset)
+        |> Ash.Query.select([:id, :character, :grade, :stroke_count, :jlpt_level])
         |> Ash.Query.limit(1)
       end)
     end
@@ -83,6 +95,8 @@ defmodule KumaSanKanji.Kanji.Kanji do
     define(:get_by_id, args: [:id], action: :get_by_id)
     define(:create, action: :create)
     define(:by_offset, args: [:offset], action: :by_offset)
+    define(:list_all, action: :list_all)
+    define(:get_by_character, args: [:character], action: :get_by_character)
   end
 
   sqlite do

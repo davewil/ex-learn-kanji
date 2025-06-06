@@ -79,37 +79,48 @@ defmodule KumaSanKanji.SRS.UserKanjiProgress do
 
       change(fn changeset, _context ->
         KumaSanKanji.SRS.UserKanjiProgress.update_srs_state(changeset)
-      end)
-    end
-
-    # Read action to get progress for a specific user-kanji pair
+      end)    end    # Read action to get progress for a specific user-kanji pair
     read :get_user_kanji_progress do
       argument(:user_id, :uuid, allow_nil?: false)
       argument(:kanji_id, :uuid, allow_nil?: false)
-
-      filter(expr(user_id == ^arg(:user_id) and kanji_id == ^arg(:kanji_id)))
-    end
-
-    # Read action to get kanji due for review for a user
+      
+      prepare(fn query, _context ->
+        user_id = Ash.Query.get_argument(query, :user_id)
+        kanji_id = Ash.Query.get_argument(query, :kanji_id)
+        
+        Ash.Query.do_filter(query, [
+          user_id: user_id,
+          kanji_id: kanji_id
+        ])
+      end)
+    end    # Read action to get kanji due for review for a user
     read :due_for_review do
       argument(:user_id, :uuid, allow_nil?: false)
       argument(:limit, :integer, default: 10)
-
-      # Compare next_review_date directly to now (assumes ISO8601/UTC)
-      filter(expr(user_id == ^arg(:user_id) and next_review_date <= ^DateTime.utc_now()))
+        prepare(fn query, _context ->
+        user_id = Ash.Query.get_argument(query, :user_id)
+        now = DateTime.utc_now()
+        
+        query
+        |> Ash.Query.do_filter([
+          user_id: user_id,
+          next_review_date: [lte: now]
+        ])
+      end)
 
       prepare(fn query, _context ->
         query
         |> Ash.Query.sort(:next_review_date)
         |> Ash.Query.limit(Map.get(query.arguments, :limit, 10))
       end)
-    end
-
-    # Read action to get user's progress stats
+    end    # Read action to get user's progress stats
     read :user_stats do
       argument(:user_id, :uuid, allow_nil?: false)
 
-      filter(expr(user_id == ^arg(:user_id)))
+      prepare(fn query, _context ->
+        user_id = Ash.Query.get_argument(query, :user_id)
+        Ash.Query.do_filter(query, [user_id: user_id])
+      end)
     end
   end
 

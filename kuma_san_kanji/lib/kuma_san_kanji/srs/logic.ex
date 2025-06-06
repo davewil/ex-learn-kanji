@@ -386,7 +386,6 @@ defmodule KumaSanKanji.SRS.Logic do
   defp sanitize_limit(limit) when is_integer(limit) and limit > 0 and limit <= 50, do: limit
   defp sanitize_limit(limit) when is_integer(limit) and limit > 50, do: 50
   defp sanitize_limit(_), do: 10
-
   defp load_kanji_data(progress_records) do
     # Extract kanji IDs and load them efficiently
     kanji_ids = Enum.map(progress_records, & &1.kanji_id)
@@ -394,6 +393,7 @@ defmodule KumaSanKanji.SRS.Logic do
     case Kanji
          |> Ash.Query.filter(id in ^kanji_ids)
          |> Ash.Query.load([:meanings, :pronunciations])
+         |> Ash.Query.select([:id, :character, :grade, :stroke_count, :jlpt_level])
          |> Ash.read() do
       {:ok, kanji_list} ->
         # Combine progress records with kanji data
