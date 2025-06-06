@@ -3,7 +3,6 @@ defmodule KumaSanKanji.Content.Seeds do
   Seeds for the Content domain in Kuma-san Kanji.
   """
 
-  alias KumaSanKanji.Kanji
   alias KumaSanKanji.Content.Domain
 
   def insert_initial_data do
@@ -22,8 +21,10 @@ defmodule KumaSanKanji.Content.Seeds do
       # Basic Categories
       %{
         name: "Numbers",
-        description: "These form the foundation of the Japanese counting system and are among the first kanji taught.",
-        color_code: "oklch(0.7 0.15 45)", # Warm red
+        description:
+          "These form the foundation of the Japanese counting system and are among the first kanji taught.",
+        # Warm red
+        color_code: "oklch(0.7 0.15 45)",
         icon_name: "calculator",
         order_index: 1
       },
@@ -33,7 +34,7 @@ defmodule KumaSanKanji.Content.Seeds do
         color_code: "oklch(70% 0.2 150)",
         icon_name: "tree",
         order_index: 2,
-        parent_id: nil,
+        parent_id: nil
       },
       %{
         name: "People",
@@ -61,15 +62,30 @@ defmodule KumaSanKanji.Content.Seeds do
       },
       %{
         name: "Abstract Concepts & Others",
-        description: "Kanji representing abstract ideas or those not fitting neatly into other categories.",
-        color_code: "oklch(0.7 0.1 330)", # Muted purple
+        description:
+          "Kanji representing abstract ideas or those not fitting neatly into other categories.",
+        # Muted purple
+        color_code: "oklch(0.7 0.1 330)",
         icon_name: "puzzle-piece",
         order_index: 10
       }
     ]
 
-    Enum.map(groups, fn group ->
-      {:ok, created} = Domain.create_thematic_group(Map.take(group, [:name, :description, :color_code, :icon_name, :order_index]))
+    Enum.map(groups, fn group_attrs ->
+      # Ensure parent_id is handled correctly if present, or defaults to nil
+      # The create_thematic_group action should handle the parent_id attribute if it's defined on the resource
+      # For now, we assume it's either part of group_attrs or handled by the action if missing.
+      params =
+        Map.take(group_attrs, [
+          :name,
+          :description,
+          :color_code,
+          :icon_name,
+          :order_index,
+          :parent_id
+        ])
+
+      {:ok, created} = Domain.create_thematic_group(params)
       created
     end)
   end
@@ -91,9 +107,15 @@ defmodule KumaSanKanji.Content.Seeds do
     end)
   end
 
-  defp map_kanji_to_content(thematic_groups, educational_contexts) do
+  defp map_kanji_to_content(thematic_groups_list, educational_contexts) do
     # Get all kanji
-    {:ok, kanji_list} = Kanji.Kanji.get()
+    # Assuming KumaSanKanji.Domain (or a specific Kanji domain) has a list_kanjis! function
+    kanji_list =
+      KumaSanKanji.Domain.list_kanjis!(load: [:meanings, :pronunciations, :example_sentences])
+
+    # Convert thematic_groups list to a map for easier lookup by name
+    thematic_groups_map =
+      Enum.into(thematic_groups_list, %{}, fn group -> {group.name, group} end)
 
     kanji_mapping = %{
       # Numbers group
@@ -109,16 +131,19 @@ defmodule KumaSanKanji.Content.Seeds do
       "十" => ["Numbers"],
 
       # Nature groups
-      "木" => ["Nature", "Plants"],
-      "森" => ["Nature", "Plants"],
-      "林" => ["Nature", "Plants"],
-      "山" => ["Nature", "Earth"],
-      "川" => ["Nature", "Earth"],
-      "土" => ["Nature", "Earth"],
-      "空" => ["Nature", "Weather"],
-      "雨" => ["Nature", "Weather"],
-      "日" => ["Nature", "Weather"],
-      "月" => ["Nature", "Weather"],
+      # Simplified, assuming "Plants", "Earth", "Weather" are sub-categories or handled differently
+      "木" => ["Nature"],
+      "森" => ["Nature"],
+      "林" => ["Nature"],
+      "山" => ["Nature"],
+      "川" => ["Nature"],
+      "土" => ["Nature"],
+      "空" => ["Nature"],
+      "雨" => ["Nature"],
+      # Also could be Time, but primary here as natural element
+      "日" => ["Nature"],
+      # Also could be Time
+      "月" => ["Nature"],
 
       # People group
       "人" => ["People"],
@@ -135,6 +160,7 @@ defmodule KumaSanKanji.Content.Seeds do
       # Time group
       "年" => ["Time"],
       "時" => ["Time"],
+      # Can also mean 'understand' or 'divide', context is key
       "分" => ["Time"]
     }
 
@@ -144,26 +170,48 @@ defmodule KumaSanKanji.Content.Seeds do
       group_names = Map.get(kanji_mapping, kanji.character, [])
 
       Enum.each(group_names, fn group_name ->
-        group = thematic_groups[group_name]
+        # Use the map for lookup
+        group = Map.get(thematic_groups_map, group_name)
+
         if group do
-          {:ok, _} = Domain.create_kanji_thematic_group(%{
-            kanji_id: kanji.id,
-            thematic_group_id: group.id,
-            relevance_score: 1.0 # Default, can be adjusted
-          })
+          {:ok, _} =
+            Domain.create_kanji_thematic_group(%{
+              kanji_id: kanji.id,
+              thematic_group_id: group.id,
+              # Default, can be adjusted
+              relevance_score: 1.0,
+              # Default, should be set based on actual order within group
+              position: 0
+            })
+        else
+          IO.puts(
+            "Warning: Thematic group '#{group_name}' not found for kanji '#{kanji.character}'."
+          )
         end
       end)
 
       # Create KanjiLearningMeta
-      contexts = Enum.filter(educational_contexts, &(&1.grade_level == kanji.grade))
-      Enum.each(contexts, fn context ->
-        {:ok, _} = Domain.create_kanji_learning_meta(%{
-          kanji_id: kanji.id,
-          educational_context_id: context.id,
-          frequency_ranking: kanji.frequency,
-          notes: "JLPT N#{kanji.jlpt}" # Example note
-        })
-      end)
+      # Ensure kanji.grade is not nil before filtering
+      if kanji.grade do
+        contexts = Enum.filter(educational_contexts, &(&1.grade_level == kanji.grade))
+
+        Enum.each(contexts, fn context ->
+          params = %{
+            kanji_id: kanji.id,
+            educational_context_id: context.id,
+            frequency_ranking: kanji.frequency
+          }
+
+          # Add notes only if jlpt is not nil
+          params = if kanji.jlpt, do: Map.put(params, :notes, "JLPT N#{kanji.jlpt}"), else: params
+
+          {:ok, _} = Domain.create_kanji_learning_meta(params)
+        end)
+      else
+        IO.puts(
+          "Warning: Kanji '#{kanji.character}' (ID: #{kanji.id}) has no grade level, skipping KanjiLearningMeta creation."
+        )
+      end
     end)
   end
 end

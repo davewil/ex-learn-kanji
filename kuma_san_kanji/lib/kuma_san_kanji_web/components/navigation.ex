@@ -29,7 +29,7 @@ defmodule KumaSanKanjiWeb.Components.Navigation do
               >
                 Explore
               </.link>
-
+              
               <%= if @current_user do %>
                 <.link
                   navigate={~p"/quiz"}
@@ -117,7 +117,7 @@ defmodule KumaSanKanjiWeb.Components.Navigation do
           >
             Explore
           </.link>
-
+          
           <%= if @current_user do %>
             <.link
               navigate={~p"/quiz"}

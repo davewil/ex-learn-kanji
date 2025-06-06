@@ -5,14 +5,16 @@ defmodule KumaSanKanji.Seeds.ContentSeeds do
 
   alias KumaSanKanji.Content.ThematicGroup
   alias KumaSanKanji.Content.KanjiThematicGroup
-  alias KumaSanKanji.Content.EducationalContext 
+  alias KumaSanKanji.Content.EducationalContext
   alias KumaSanKanji.Content.KanjiLearningMeta
   alias KumaSanKanji.Content.KanjiUsageExample
+  # Add alias for the domain
+  alias KumaSanKanji.Domain
 
   def insert_initial_data do
     # Create initial thematic groups
     thematic_groups = insert_thematic_groups()
-    
+
     # Create educational contexts
     educational_contexts = insert_educational_contexts()
 
@@ -25,7 +27,8 @@ defmodule KumaSanKanji.Seeds.ContentSeeds do
       # Grade 1 Categories
       %{
         name: "Numbers",
-        description: "These form the foundation of the Japanese counting system and are among the first kanji taught.",
+        description:
+          "These form the foundation of the Japanese counting system and are among the first kanji taught.",
         color_code: "oklch(0.7 0.15 45)",
         icon_name: "calculator",
         order_index: 1,
@@ -33,7 +36,8 @@ defmodule KumaSanKanji.Seeds.ContentSeeds do
       },
       %{
         name: "Directions & Positions",
-        description: "These spatial concepts are essential for basic navigation and describing locations.",
+        description:
+          "These spatial concepts are essential for basic navigation and describing locations.",
         color_code: "oklch(0.7 0.15 90)",
         icon_name: "map-pin",
         order_index: 2,
@@ -41,7 +45,8 @@ defmodule KumaSanKanji.Seeds.ContentSeeds do
       },
       %{
         name: "Nature",
-        description: "These represent fundamental elements of the natural world that surround children in their daily lives.",
+        description:
+          "These represent fundamental elements of the natural world that surround children in their daily lives.",
         color_code: "oklch(0.7 0.15 145)",
         icon_name: "tree",
         order_index: 3,
@@ -49,7 +54,8 @@ defmodule KumaSanKanji.Seeds.ContentSeeds do
       },
       %{
         name: "People & Animals",
-        description: "These characters represent basic social categories and common animals children encounter.",
+        description:
+          "These characters represent basic social categories and common animals children encounter.",
         color_code: "oklch(0.7 0.15 200)",
         icon_name: "users",
         order_index: 4,
@@ -57,7 +63,8 @@ defmodule KumaSanKanji.Seeds.ContentSeeds do
       },
       %{
         name: "Body Parts",
-        description: "Learning the kanji for body parts helps children describe themselves and basic health concepts.",
+        description:
+          "Learning the kanji for body parts helps children describe themselves and basic health concepts.",
         color_code: "oklch(0.7 0.15 315)",
         icon_name: "heart",
         order_index: 5,
@@ -65,7 +72,8 @@ defmodule KumaSanKanji.Seeds.ContentSeeds do
       },
       %{
         name: "Actions & Concepts",
-        description: "These represent basic actions and concepts that appear frequently in elementary texts.",
+        description:
+          "These represent basic actions and concepts that appear frequently in elementary texts.",
         color_code: "oklch(0.7 0.15 270)",
         icon_name: "play",
         order_index: 6,
@@ -90,12 +98,12 @@ defmodule KumaSanKanji.Seeds.ContentSeeds do
       %{
         name: "Objects",
         description: "Common objects children interact with or see regularly.",
-        color_code: "oklch(0.7 0.15 60)", 
+        color_code: "oklch(0.7 0.15 60)",
         icon_name: "box",
         order_index: 9,
         parent_id: nil
       },
-      
+
       # Nature Subcategories
       %{
         name: "Weather",
@@ -132,29 +140,39 @@ defmodule KumaSanKanji.Seeds.ContentSeeds do
     ]
 
     # First pass - create all root groups
-    root_groups = groups
-    |> Enum.filter(fn g -> is_nil(g.parent_id) end)
-    |> Enum.map(fn group ->      {:ok, created} = ThematicGroup
-        |> Ash.Changeset.for_create(:create, group)
-        |> Ash.create!()
-      {group.name, created}
-    end)
-    |> Map.new()
+    root_groups =
+      groups
+      |> Enum.filter(fn g -> is_nil(g.parent_id) end)
+      |> Enum.map(fn group ->
+        {:ok, created} =
+          ThematicGroup
+          |> Ash.Changeset.for_create(:create, group)
+          |> Ash.create!()
+
+        {group.name, created}
+      end)
+      |> Map.new()
 
     # Second pass - create child groups with parent IDs
-    child_groups = groups
-    |> Enum.filter(fn g -> not is_nil(g[:parent_name]) end)
-    |> Enum.map(fn group ->
-      parent = root_groups[group.parent_name]
-      attrs = group
-      |> Map.take([:name, :description, :color_code, :icon_name, :order_index])
-      |> Map.put(:parent_id, parent.id)
-        {:ok, created} = ThematicGroup
-        |> Ash.Changeset.for_create(:create, attrs)
-        |> Ash.create!()
-      {group.name, created}
-    end)
-    |> Map.new()
+    child_groups =
+      groups
+      |> Enum.filter(fn g -> not is_nil(g[:parent_name]) end)
+      |> Enum.map(fn group ->
+        parent = root_groups[group.parent_name]
+
+        attrs =
+          group
+          |> Map.take([:name, :description, :color_code, :icon_name, :order_index])
+          |> Map.put(:parent_id, parent.id)
+
+        {:ok, created} =
+          ThematicGroup
+          |> Ash.Changeset.for_create(:create, attrs)
+          |> Ash.create!()
+
+        {group.name, created}
+      end)
+      |> Map.new()
 
     Map.merge(root_groups, child_groups)
   end
@@ -200,21 +218,29 @@ defmodule KumaSanKanji.Seeds.ContentSeeds do
     ]
 
     contexts
-    |> Enum.map(fn context ->      {:ok, created} = EducationalContext
+    |> Enum.map(fn context ->
+      {:ok, created} =
+        EducationalContext
         |> Ash.Changeset.for_create(:create, context)
         |> Ash.create!()
+
       {context.name, created}
     end)
     |> Map.new()
   end
 
-  defp map_kanji_to_content(groups, contexts) do    # Get all kanji
-    {:ok, _kanji_list} = KumaSanKanji.Kanji.Kanji.list_all()
+  defp map_kanji_to_content(groups, contexts) do
+    # Get all kanji using the domain
+    # Prefixed with _ as it's not used directly
+    _all_kanjis = Domain.list_kanjis!()
 
     # Create thematic group mappings
     kanji_mappings = [
       # Numbers (数字)
-      %{group: "Numbers", kanji_chars: ["一", "二", "三", "四", "五", "六", "七", "八", "九", "十", "百", "千"]},
+      %{
+        group: "Numbers",
+        kanji_chars: ["一", "二", "三", "四", "五", "六", "七", "八", "九", "十", "百", "千"]
+      },
       # Directions & Positions (方向と位置)
       %{group: "Directions & Positions", kanji_chars: ["上", "下", "中", "左", "右"]},
       # Nature Elements (自然) with subgroups
@@ -246,7 +272,8 @@ defmodule KumaSanKanji.Seeds.ContentSeeds do
 
       if group = groups[group_name] do
         Enum.each(Enum.with_index(kanji_chars), fn {char, idx} ->
-          with {:ok, kanji} <- KumaSanKanji.Kanji.Kanji.get_by_character(char) do
+          # Use the domain to get kanji by character
+          with {:ok, kanji} <- Domain.get_kanji_by_character(%{character: char}) do
             # Create kanji-thematic group association
             attrs = %{
               kanji_id: kanji.id,
@@ -255,7 +282,9 @@ defmodule KumaSanKanji.Seeds.ContentSeeds do
               relevance_score: if(subgroup, do: 1.0, else: 0.5),
               notes: if(subgroup, do: subgroup, else: nil)
             }
-              {:ok, _} = KanjiThematicGroup
+
+            {:ok, _} =
+              KanjiThematicGroup
               |> Ash.Changeset.for_create(:create, attrs)
               |> Ash.create!()
 
@@ -271,13 +300,15 @@ defmodule KumaSanKanji.Seeds.ContentSeeds do
               metadata_attrs = %{
                 kanji_id: kanji.id,
                 educational_context_id: context.id,
-                difficulty_score: difficulty_score,                prerequisites: prerequisites,
+                difficulty_score: difficulty_score,
+                prerequisites: prerequisites,
                 learning_tips: learning_tips,
                 common_mistakes: common_mistakes,
                 mnemonic_hints: mnemonic_hints
               }
-              
-              {:ok, _} = KanjiLearningMeta
+
+              {:ok, _} =
+                KanjiLearningMeta
                 |> Ash.Changeset.for_create(:create, metadata_attrs)
                 |> Ash.create!()
             end)
@@ -293,47 +324,55 @@ defmodule KumaSanKanji.Seeds.ContentSeeds do
   end
 
   defp create_usage_examples(kanji) do
-    examples = case kanji.character do
-      "水" -> [
-        %{
-          context: "水曜日に友達と会います。",
-          romaji: "suiyōbi ni tomodachi to aimasu",
-          translation: "I will meet my friend on Wednesday",
-          difficulty_level: 1,
-          source: "Basic conversation",
-          notes: "Common usage in calendar context"
-        },
-        %{
-          context: "彼は水泳が得意です。",
-          romaji: "kare wa suiei ga tokui desu",
-          translation: "He is good at swimming",
-          difficulty_level: 2,
-          source: "Basic conversation", 
-          notes: "Sports context usage"
-        }
-      ]
-      "木" -> [
-        %{
-          context: "木曜日に授業があります。",
-          romaji: "mokuyōbi ni jugyō ga arimasu",
-          translation: "There is a class on Thursday",
-          difficulty_level: 1,
-          source: "Basic conversation",
-          notes: "Calendar context usage"
-        },
-        %{
-          context: "公園に木々がたくさんあります。",
-          romaji: "kōen ni kigi ga takusan arimasu",
-          translation: "There are many trees in the park",
-          difficulty_level: 2,
-          source: "Basic description",
-          notes: "Natural plural usage with 々"
-        }
-      ]
-      _ -> []
-    end
+    examples =
+      case kanji.character do
+        "水" ->
+          [
+            %{
+              context: "水曜日に友達と会います。",
+              romaji: "suiyōbi ni tomodachi to aimasu",
+              translation: "I will meet my friend on Wednesday",
+              difficulty_level: 1,
+              source: "Basic conversation",
+              notes: "Common usage in calendar context"
+            },
+            %{
+              context: "彼は水泳が得意です。",
+              romaji: "kare wa suiei ga tokui desu",
+              translation: "He is good at swimming",
+              difficulty_level: 2,
+              source: "Basic conversation",
+              notes: "Sports context usage"
+            }
+          ]
 
-    Enum.each(examples, fn example ->      {:ok, _} = KanjiUsageExample
+        "木" ->
+          [
+            %{
+              context: "木曜日に授業があります。",
+              romaji: "mokuyōbi ni jugyō ga arimasu",
+              translation: "There is a class on Thursday",
+              difficulty_level: 1,
+              source: "Basic conversation",
+              notes: "Calendar context usage"
+            },
+            %{
+              context: "公園に木々がたくさんあります。",
+              romaji: "kōen ni kigi ga takusan arimasu",
+              translation: "There are many trees in the park",
+              difficulty_level: 2,
+              source: "Basic description",
+              notes: "Natural plural usage with 々"
+            }
+          ]
+
+        _ ->
+          []
+      end
+
+    Enum.each(examples, fn example ->
+      {:ok, _} =
+        KanjiUsageExample
         |> Ash.Changeset.for_create(:create, Map.put(example, :kanji_id, kanji.id))
         |> Ash.create!()
     end)
@@ -343,23 +382,30 @@ defmodule KumaSanKanji.Seeds.ContentSeeds do
   defp calculate_difficulty_score(kanji) do
     # Base difficulty from stroke count (normalized to 0-1 range, most complex kanji has ~30 strokes)
     stroke_factor = kanji.stroke_count / 30.0
-    
+
     # Grade level factor (earlier grade = easier)
     grade_factor = if kanji.grade, do: (7 - kanji.grade) / 6.0, else: 0.5
-    
+
     # JLPT level factor (N5 easiest, N1 hardest)
     jlpt_factor = if kanji.jlpt_level, do: (6 - kanji.jlpt_level) / 5.0, else: 0.5
 
     # Combine factors (weighted average)
-    difficulty = (0.4 * stroke_factor + 0.3 * grade_factor + 0.3 * jlpt_factor)
-    |> max(0.1) 
-    |> min(1.0)
-    
+    difficulty =
+      (0.4 * stroke_factor + 0.3 * grade_factor + 0.3 * jlpt_factor)
+      |> max(0.1)
+      |> min(1.0)
+
     # Scale to 1-5 range
-    1.0 + (difficulty * 4.0)
+    1.0 + difficulty * 4.0
   end
-  defp determine_prerequisites(_kanji), do: ["basic-strokes"]  # Simplified for now
-  defp generate_learning_tips(_kanji), do: "Practice basic strokes and proper stroke order."  # Simplified for now
-  defp identify_common_mistakes(_kanji), do: "Watch for proper stroke order and proportions."  # Simplified for now
-  defp create_mnemonic_hints(_kanji), do: "Look for visual elements that relate to the kanji's meaning."  # Simplified for now
+
+  # Simplified for now
+  defp determine_prerequisites(_kanji), do: ["basic-strokes"]
+  # Simplified for now
+  defp generate_learning_tips(_kanji), do: "Practice basic strokes and proper stroke order."
+  # Simplified for now
+  defp identify_common_mistakes(_kanji), do: "Watch for proper stroke order and proportions."
+  # Simplified for now
+  defp create_mnemonic_hints(_kanji),
+    do: "Look for visual elements that relate to the kanji's meaning."
 end

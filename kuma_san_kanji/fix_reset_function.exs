@@ -6,32 +6,34 @@
 defmodule FixResetFunction do
   def run do
     file_path = Path.join(["lib", "kuma_san_kanji", "srs", "logic.ex"])
-    
+
     content = File.read!(file_path)
     fixed_content = fix_reset_user_progress(content)
-    
+
     # Create backup
     backup_path = file_path <> ".bak"
     File.write!(backup_path, content)
-    
+
     # Write fixed file
     File.write!(file_path, fixed_content)
-    
+
     IO.puts("Fixed reset_user_progress function in #{file_path}")
     IO.puts("Original file backed up to #{backup_path}")
   end
-  
+
   def fix_reset_user_progress(content) do
     # Find the start of the function definition
-    function_pattern = ~r/def reset_user_progress\(user_id, options \\\\ \[\]\) when is_binary\(user_id\) do/
+    function_pattern =
+      ~r/def reset_user_progress\(user_id, options \\\\ \[\]\) when is_binary\(user_id\) do/
+
     function_match = Regex.run(function_pattern, content)
-    
+
     if function_match do
       function_start = hd(function_match)
-      
+
       # Split at function start to preserve everything before it
       [before_function, function_and_after] = String.split(content, function_start, parts: 2)
-      
+
       # The fixed function
       fixed_function = """
       def reset_user_progress(user_id, options \\\\ []) when is_binary(user_id) do
@@ -98,7 +100,7 @@ defmodule FixResetFunction do
                   |> Ash.Query.sort(grade: :asc)  # Start with easier kanji first
                   |> Ash.Query.limit(limit)
                   |> Ash.read()
-      
+
                 case kanji_ids_result do
                   {:ok, kanji_list} when is_list(kanji_list) and length(kanji_list) > 0 ->
                     kanji_ids = Enum.map(kanji_list, & &1.id)
@@ -155,15 +157,15 @@ defmodule FixResetFunction do
         end
       end
       """
-      
+
       # Find the end of the function to determine what to keep after it
       # This is a simplified approach - in a real situation, you might need a more 
       # sophisticated technique to find the end of the function
-      
+
       # Look for the next function definition or the end of the file
       next_function_pattern = ~r/\n\s*def\s+[a-z_]+/
       next_function_match = Regex.run(next_function_pattern, function_and_after)
-      
+
       if next_function_match do
         next_function_start = hd(next_function_match)
         [_, after_function] = String.split(function_and_after, next_function_start, parts: 2)

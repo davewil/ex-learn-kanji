@@ -8,7 +8,7 @@ defmodule KumaSanKanji.Quiz.Session do
   - Handles session expiration
   - Validates session data
   """
-  alias KumaSanKanji.Kanji.Kanji
+  alias KumaSanKanji.Domain
 
   # Store session in either ETS (for dev/test) or a database table (for production)
   # For simplicity in this implementation, we'll use a GenServer with ETS
@@ -38,11 +38,12 @@ defmodule KumaSanKanji.Quiz.Session do
     with :ok <- validate_session_data(session_data),
          session_id = generate_session_id(),
          timestamp = System.system_time(:second) do
-      session_record = Map.merge(session_data, %{
-        id: session_id,
-        created_at: timestamp,
-        expires_at: timestamp + @session_expiry_seconds
-      })
+      session_record =
+        Map.merge(session_data, %{
+          id: session_id,
+          created_at: timestamp,
+          expires_at: timestamp + @session_expiry_seconds
+        })
 
       GenServer.call(__MODULE__, {:save_session, session_record})
     end
@@ -60,6 +61,7 @@ defmodule KumaSanKanji.Quiz.Session do
   def get_for_user(user_id) when is_binary(user_id) do
     GenServer.call(__MODULE__, {:get_user_session, user_id})
   end
+
   @doc """
   Restores a specific session for a user by session ID.
 
@@ -77,17 +79,20 @@ defmodule KumaSanKanji.Quiz.Session do
           case get_kanji_for_session(session) do
             {:ok, kanji} ->
               # Return restored quiz state matching format from initialize_quiz_session
-              {:ok, %{
-                current_kanji: kanji,
-                answers_count: session.answers_count,
-                last_answer_times: session.last_answer_times
-              }}
+              {:ok,
+               %{
+                 current_kanji: kanji,
+                 answers_count: session.answers_count,
+                 last_answer_times: session.last_answer_times
+               }}
+
             {:error, reason} ->
               {:error, reason}
           end
         else
           {:error, :session_id_mismatch}
         end
+
       {:error, reason} ->
         {:error, reason}
     end
@@ -171,27 +176,31 @@ defmodule KumaSanKanji.Quiz.Session do
       :ok
     else
       missing = Enum.filter(required_fields, &(!Map.has_key?(session_data, &1)))
-      {:error, "Missing required fields: #{inspect(missing)}"}    end
+      {:error, "Missing required fields: #{inspect(missing)}"}
+    end
   end
-  
+
   defp generate_session_id do
     Ash.UUID.generate()
   end
-  
+
   defp get_kanji_for_session(session) do
-    case Kanji.get_by_id(session.current_kanji_id) do
+    # Use the domain to get the kanji by ID
+    case Domain.get_kanji_by_id(%{id: session.current_kanji_id}) do
       {:ok, kanji} when not is_nil(kanji) ->
         # Load meanings and pronunciations to match quiz state format
         try do
           # Use Ash.Query to load the relationships
-          {:ok, kanji_with_relations} = kanji
+          {:ok, kanji_with_relations} =
+            kanji
             |> Ash.Query.load([:meanings, :pronunciations])
             |> Ash.read_one()
-          
+
           {:ok, kanji_with_relations}
         rescue
           e -> {:error, Exception.message(e)}
         end
+
       _ ->
         {:error, :kanji_not_found}
     end

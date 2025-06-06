@@ -12,7 +12,7 @@ defmodule KumaSanKanji.Scripts.ResetTestUserProgress do
     user_query =
       User
       |> Ash.Query.for_read(:read)
-      |> Ash.Query.filter([email: email])
+      |> Ash.Query.filter(email: email)
 
     case Ash.read(user_query) do
       {:ok, [user]} ->
@@ -20,12 +20,14 @@ defmodule KumaSanKanji.Scripts.ResetTestUserProgress do
         progress_query =
           UserKanjiProgress
           |> Ash.Query.for_read(:read)
-          |> Ash.Query.filter([user_id: user.id])
+          |> Ash.Query.filter(user_id: user.id)
 
         case Ash.read(progress_query) do
           {:ok, progress_records} ->
             progress_count = length(progress_records)
-            IO.puts("\n🗑️  Found #{progress_count} progress records for test user...")            # Delete all progress records
+            # Delete all progress records
+            IO.puts("\n🗑️  Found #{progress_count} progress records for test user...")
+
             Enum.each(progress_records, fn record ->
               Ash.destroy!(record)
             end)
@@ -40,7 +42,9 @@ defmodule KumaSanKanji.Scripts.ResetTestUserProgress do
 
             case Ash.read(kanji_query) do
               {:ok, kanji_list} ->
-                IO.puts("\n📚 Initializing progress for #{length(kanji_list)} kanji...")                # Initialize progress for each kanji
+                # Initialize progress for each kanji
+                IO.puts("\n📚 Initializing progress for #{length(kanji_list)} kanji...")
+
                 case Logic.bulk_initialize_progress(user.id, Enum.map(kanji_list, & &1.id)) do
                   {:ok, new_progress} ->
                     IO.puts("✅ Created #{length(new_progress)} new progress records")

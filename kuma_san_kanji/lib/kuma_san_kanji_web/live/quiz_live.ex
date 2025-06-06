@@ -28,23 +28,34 @@ defmodule KumaSanKanjiWeb.QuizLive do
     user = socket.assigns.current_user
 
     # Check for existing session to resume
-    quiz_state = case restore_session_if_exists(user.id, params["session_id"]) do
-      {:ok, restored_state} ->
-        restored_state
-      {:error, reason} ->
-        Logger.error("[QuizLive] Failed to restore session for user #{user.id} with params #{inspect(params)}: #{inspect(reason)}")
-        # Initialize new session
-        case initialize_quiz_session(user.id) do
-          {:ok, new_state} -> new_state
-          {:error, reason2} -> 
-            Logger.error("[QuizLive] Failed to initialize quiz session for user #{user.id}: #{inspect(reason2)}")
-            {:error, reason2}
-        end
-    end
+    quiz_state =
+      case restore_session_if_exists(user.id, params["session_id"]) do
+        {:ok, restored_state} ->
+          restored_state
+
+        {:error, reason} ->
+          Logger.error(
+            "[QuizLive] Failed to restore session for user #{user.id} with params #{inspect(params)}: #{inspect(reason)}"
+          )
+
+          # Initialize new session
+          case initialize_quiz_session(user.id) do
+            {:ok, new_state} ->
+              new_state
+
+            {:error, reason2} ->
+              Logger.error(
+                "[QuizLive] Failed to initialize quiz session for user #{user.id}: #{inspect(reason2)}"
+              )
+
+              {:error, reason2}
+          end
+      end
 
     case quiz_state do
       {:error, reason} ->
         Logger.error("[QuizLive] Quiz state error for user #{user.id}: #{inspect(reason)}")
+
         socket =
           socket
           |> put_flash(:error, get_error_message(reason) <> " (debug: #{inspect(reason)})")
@@ -53,6 +64,7 @@ defmodule KumaSanKanjiWeb.QuizLive do
           |> assign(:dev_mode, Mix.env() == :dev)
 
         {:ok, socket}
+
       quiz_state when is_map(quiz_state) ->
         socket =
           socket
@@ -110,6 +122,7 @@ defmodule KumaSanKanjiWeb.QuizLive do
         {:noreply, socket}
     end
   end
+
   @impl true
   def handle_event("skip_kanji", _params, socket) do
     user = socket.assigns.current_user
@@ -170,17 +183,19 @@ defmodule KumaSanKanjiWeb.QuizLive do
   @impl true
   def handle_event("reset_progress", _params, socket) do
     require Logger
-    
+
     if Mix.env() == :dev do
       user = socket.assigns.current_user
-      
+
       # Add detailed error handling with try/rescue
       try do
         # Use enhanced reset options - 15 kanji that are all due immediately
         case Logic.reset_user_progress(user.id, limit: 15, immediate: true) do
           {:ok, result} ->
-            Logger.debug("[QuizLive] Reset progress: cleared #{result.cleared} records, initialized #{result.initialized} kanji")
-            
+            Logger.debug(
+              "[QuizLive] Reset progress: cleared #{result.cleared} records, initialized #{result.initialized} kanji"
+            )
+
             # Re-initialize the quiz session after reset
             case initialize_quiz_session(user.id) do
               {:ok, quiz_state} ->
@@ -189,23 +204,40 @@ defmodule KumaSanKanjiWeb.QuizLive do
                   |> assign(quiz_state)
                   |> assign(:user_answer, "")
                   |> assign(:show_feedback, false)
-                  |> assign(:feedback_message, "Progress reset! #{result.initialized} kanji ready for review.")
+                  |> assign(
+                    :feedback_message,
+                    "Progress reset! #{result.initialized} kanji ready for review."
+                  )
                   |> assign(:feedback_type, :info)
                   |> assign(:quiz_complete, false)
                   |> assign(:answers_count, 0)
                   |> assign(:last_answer_times, [])
-                  |> put_flash(:info, "Quiz progress reset. #{result.initialized} kanji ready for immediate review.")
+                  |> put_flash(
+                    :info,
+                    "Quiz progress reset. #{result.initialized} kanji ready for immediate review."
+                  )
+
                 {:noreply, socket}
-            {:error, reason} ->
-              {:noreply, put_flash(socket, :error, "Failed to re-initialize quiz: #{get_error_message(reason)}")}
-          end
-        {:error, reason} ->
-          Logger.error("[QuizLive] Failed to reset progress: #{inspect(reason)}")
-          {:noreply, put_flash(socket, :error, "Failed to reset progress: #{inspect(reason)}")}
-      end
+
+              {:error, reason} ->
+                {:noreply,
+                 put_flash(
+                   socket,
+                   :error,
+                   "Failed to re-initialize quiz: #{get_error_message(reason)}"
+                 )}
+            end
+
+          {:error, reason} ->
+            Logger.error("[QuizLive] Failed to reset progress: #{inspect(reason)}")
+            {:noreply, put_flash(socket, :error, "Failed to reset progress: #{inspect(reason)}")}
+        end
       rescue
         e ->
-          Logger.error("[QuizLive] Exception in reset_progress: #{inspect(e)}\n#{Exception.format_stacktrace(__STACKTRACE__)}")
+          Logger.error(
+            "[QuizLive] Exception in reset_progress: #{inspect(e)}\n#{Exception.format_stacktrace(__STACKTRACE__)}"
+          )
+
           {:noreply, put_flash(socket, :error, "Error: #{Exception.message(e)}")}
       end
     else
@@ -245,49 +277,66 @@ defmodule KumaSanKanjiWeb.QuizLive do
   # Private helper functions
 
   defp restore_session_if_exists(_user_id, nil), do: {:error, :no_session_id}
+
   defp restore_session_if_exists(user_id, session_id) do
     require Logger
-    try do      case Session.restore_for_user(user_id, session_id) do
+
+    try do
+      case Session.restore_for_user(user_id, session_id) do
         {:ok, session_data} ->
           # Get user stats to include with restored session
           case Logic.get_user_stats(user_id) do
-            {:ok, stats} ->              # Get progress for the current kanji if available
-              current_progress = case session_data.current_kanji do
-                nil -> nil
-                kanji ->
-                  # Try to get the progress for this kanji
-                  case Logic.get_due_kanji(user_id, 1) do
-                    {:ok, [progress | _]} when progress.kanji.id == kanji.id -> progress
-                    {:ok, _} -> nil
-                    {:error, _} -> nil
-                  end
-              end
-              
-              {:ok, %{
-                current_kanji: session_data.current_kanji,
-                current_progress: current_progress,
-                user_stats: stats,
-                quiz_error: false,
-                answers_count: session_data.answers_count || 0,
-                last_answer_times: session_data.last_answer_times || []
-              }}
-            {:error, reason} -> 
+            # Get progress for the current kanji if available
+            {:ok, stats} ->
+              current_progress =
+                case session_data.current_kanji do
+                  nil ->
+                    nil
+
+                  kanji ->
+                    # Try to get the progress for this kanji
+                    case Logic.get_due_kanji(user_id, 1) do
+                      {:ok, [progress | _]} when progress.kanji.id == kanji.id -> progress
+                      {:ok, _} -> nil
+                      {:error, _} -> nil
+                    end
+                end
+
+              {:ok,
+               %{
+                 current_kanji: session_data.current_kanji,
+                 current_progress: current_progress,
+                 user_stats: stats,
+                 quiz_error: false,
+                 answers_count: session_data.answers_count || 0,
+                 last_answer_times: session_data.last_answer_times || []
+               }}
+
+            {:error, reason} ->
               {:error, reason}
           end
+
         {:error, _reason} ->
           {:error, :session_not_found}
       end
     rescue
       e ->
-        Logger.error("[QuizLive] Exception in restore_session_if_exists for user #{user_id}, session_id #{inspect(session_id)}: #{Exception.message(e)}\n" <> Exception.format(:error, e, __STACKTRACE__))
+        Logger.error(
+          "[QuizLive] Exception in restore_session_if_exists for user #{user_id}, session_id #{inspect(session_id)}: #{Exception.message(e)}\n" <>
+            Exception.format(:error, e, __STACKTRACE__)
+        )
+
         {:error, {:exception, Exception.message(e)}}
     end
   end
-  defp save_session_state(socket, user_id) do    current_kanji_id = case socket.assigns.current_kanji do
-      nil -> nil
-      kanji -> kanji.id
-    end
-    
+
+  defp save_session_state(socket, user_id) do
+    current_kanji_id =
+      case socket.assigns.current_kanji do
+        nil -> nil
+        kanji -> kanji.id
+      end
+
     # Include both the kanji and progress data in the session
     session_data = %{
       user_id: user_id,
@@ -301,7 +350,9 @@ defmodule KumaSanKanjiWeb.QuizLive do
     # Save session asynchronously to avoid blocking the LiveView
     Task.start(fn ->
       case Session.save(session_data) do
-        {:ok, _session_id} -> :ok
+        {:ok, _session_id} ->
+          :ok
+
         {:error, reason} ->
           # Log error but don't interrupt the quiz flow
           require Logger
@@ -313,19 +364,24 @@ defmodule KumaSanKanjiWeb.QuizLive do
   # Private helper functions
   defp initialize_quiz_session(user_id) do
     require Logger
+
     try do
       # For new users, stats may not exist yet - that's expected
       stats_result = Logic.get_user_stats(user_id)
-      stats = case stats_result do
-        {:ok, stats} -> stats
-        {:error, _} -> %{} # New user without stats
-      end
+
+      stats =
+        case stats_result do
+          {:ok, stats} -> stats
+          # New user without stats
+          {:error, _} -> %{}
+        end
+
       # Check for due kanji
       case Logic.get_due_kanji(user_id, 1) do
         {:ok, [progress | _]} ->
           # Keep both the progress record and extract kanji for easy access
           kanji = progress.kanji
-          
+
           {:ok,
            %{
              current_kanji: kanji,
@@ -347,12 +403,16 @@ defmodule KumaSanKanjiWeb.QuizLive do
           # Only propagate errors from get_due_kanji if they're not related to empty stats
           case reason do
             :not_found -> {:ok, %{current_kanji: nil, user_stats: stats, quiz_error: false}}
-            _ -> {:error, reason} 
+            _ -> {:error, reason}
           end
       end
     rescue
       e ->
-        Logger.error("[QuizLive] Exception in initialize_quiz_session for user #{user_id}: #{Exception.message(e)}\n" <> Exception.format(:error, e, __STACKTRACE__))
+        Logger.error(
+          "[QuizLive] Exception in initialize_quiz_session for user #{user_id}: #{Exception.message(e)}\n" <>
+            Exception.format(:error, e, __STACKTRACE__)
+        )
+
         {:error, {:exception, Exception.message(e)}}
     end
   end
@@ -397,7 +457,7 @@ defmodule KumaSanKanjiWeb.QuizLive do
       :ok
     end
   end
-  
+
   defp process_answer(socket, user, current_kanji, current_progress, sanitized_answer) do
     # Determine if answer is correct
     is_correct = check_answer_correctness(current_kanji, sanitized_answer)
@@ -424,16 +484,16 @@ defmodule KumaSanKanjiWeb.QuizLive do
         save_session_state(socket, user.id)
 
         {:noreply, socket}
-      
+
       {:error, reason} ->
         socket =
           socket
           |> put_flash(:error, "Failed to record answer: #{get_error_message(reason)}")
-          
+
         {:noreply, socket}
     end
   end
-  
+
   defp load_next_kanji(socket) do
     user = socket.assigns.current_user
 
@@ -441,12 +501,13 @@ defmodule KumaSanKanjiWeb.QuizLive do
       {:ok, [progress | _]} ->
         # Extract kanji from progress record
         next_kanji = progress.kanji
-        
+
         # Reset quiz state for next kanji
         socket =
           socket
           |> assign(:current_kanji, next_kanji)
-          |> assign(:current_progress, progress)  # Save the progress record
+          # Save the progress record
+          |> assign(:current_progress, progress)
           |> assign(:show_feedback, false)
           |> assign(:feedback_message, "")
           |> assign(:feedback_type, :info)
@@ -457,21 +518,22 @@ defmodule KumaSanKanjiWeb.QuizLive do
         save_session_state(socket, user.id)
 
         {:noreply, socket}
-        
+
       {:ok, []} ->
         # No more kanji due for review
         socket =
           socket
           |> assign(:current_kanji, nil)
-          |> assign(:current_progress, nil)  # Clear the progress record
+          # Clear the progress record
+          |> assign(:current_progress, nil)
           |> assign(:quiz_complete, true)
           |> assign(:show_feedback, false)
           |> assign(:feedback_message, "")
           |> assign(:feedback_type, :info)
-      
+
         # Save completion state
         save_session_state(socket, user.id)
-        
+
         {:noreply, socket}
 
       {:error, reason} ->
@@ -483,6 +545,7 @@ defmodule KumaSanKanjiWeb.QuizLive do
         {:noreply, socket}
     end
   end
+
   defp check_answer_correctness(kanji, user_answer) do
     # Check if user answer matches any of the kanji's readings or meanings
     # The kanji may be the direct structure or nested within a progress record
@@ -506,6 +569,7 @@ defmodule KumaSanKanjiWeb.QuizLive do
 
     meanings_match || readings_match
   end
+
   defp get_feedback_message(:correct, kanji) do
     kanji_data = kanji
     meanings = kanji_data.meanings |> Enum.map(& &1.value) |> Enum.join(", ")

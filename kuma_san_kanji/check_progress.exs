@@ -1,46 +1,53 @@
 defmodule KumaSanKanji.Scripts.CheckProgress do
   @moduledoc """
   Script to check user's kanji progress status.
-  
+
   Run with:
   mix run check_progress.exs
   """
   alias KumaSanKanji.Accounts.User
   alias KumaSanKanji.SRS.UserKanjiProgress
   require Ash.Query
-    def run do    # Get test user
-    {:ok, [user | _]} = User
+  # Get test user
+  def run do
+    {:ok, [user | _]} =
+      User
       |> Ash.Query.filter(email == "test@example.com")
       |> Ash.read()
-      
-    IO.puts("=== Kanji Progress for #{user.email} ===")    # Check progress records
+
+    # Check progress records
+    IO.puts("=== Kanji Progress for #{user.email} ===")
     import Ash.Query
-    
-    {:ok, progress_records} = UserKanjiProgress
-      |> filter(user_id == ^user.id)  
+
+    {:ok, progress_records} =
+      UserKanjiProgress
+      |> filter(user_id == ^user.id)
       |> Ash.read()
-    
+
     # Load the kanji relationship for each record
-    progress_records = 
+    progress_records =
       case Ash.load(progress_records, :kanji) do
         {:ok, loaded} -> loaded
-        {:error, _} -> progress_records # Fall back to original if loading fails
+        # Fall back to original if loading fails
+        {:error, _} -> progress_records
       end
-      
+
     IO.puts("Total progress records: #{length(progress_records)}")
-    
+
     now = DateTime.utc_now()
-    
+
     # Count due items
-    due_now = Enum.filter(progress_records, fn p -> 
-      DateTime.compare(p.next_review_date, now) in [:lt, :eq]
-    end)
-    
+    due_now =
+      Enum.filter(progress_records, fn p ->
+        DateTime.compare(p.next_review_date, now) in [:lt, :eq]
+      end)
+
     IO.puts("Items due for review: #{length(due_now)}")
-    
+
     # Show some details about due items
     if length(due_now) > 0 do
       IO.puts("\nFirst 5 due kanji:")
+
       due_now
       |> Enum.take(5)
       |> Enum.each(fn p ->

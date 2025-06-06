@@ -10,13 +10,15 @@ dev_email = "test@example.com"
 IO.puts("\n🔍 Looking for test user...")
 
 # Get the development user
-case User |> Ash.Query.filter([email: dev_email]) |> Ash.read() do
+case User |> Ash.Query.filter(email: dev_email) |> Ash.read() do
   {:ok, [user]} ->
-    IO.puts("✅ Found user: #{user.username}")    # Get all progress records
+    # Get all progress records
+    IO.puts("✅ Found user: #{user.username}")
+
     progress_query =
       UserKanjiProgress
       |> Ash.Query.for_read(:read)
-      |> Ash.Query.filter([user_id: user.id])
+      |> Ash.Query.filter(user_id: user.id)
 
     case Ash.read(progress_query) do
       {:ok, progress_records} ->
@@ -27,7 +29,9 @@ case User |> Ash.Query.filter([email: dev_email]) |> Ash.read() do
           Ash.destroy!(record)
         end)
 
-        IO.puts("✅ Deleted all progress records")        # Get first 10 kanji to initialize progress for
+        # Get first 10 kanji to initialize progress for
+        IO.puts("✅ Deleted all progress records")
+
         kanji_query =
           Kanji
           |> Ash.Query.for_read(:read)
@@ -37,12 +41,12 @@ case User |> Ash.Query.filter([email: dev_email]) |> Ash.read() do
           {:ok, kanji_list} ->
             unique_count = length(kanji_list)
             IO.puts("\n📚 Found #{unique_count} unique kanji")
-            
+
             # Initialize progress for unique kanji
             case Logic.bulk_initialize_progress(user.id, Enum.map(kanji_list, & &1.id)) do
               {:ok, new_progress} ->
                 IO.puts("✅ Created #{length(new_progress)} new progress records")
-                
+
                 # Get user stats
                 case Logic.get_user_stats(user.id) do
                   {:ok, stats} ->

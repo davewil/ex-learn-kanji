@@ -12,7 +12,8 @@ defmodule KumaSanKanji.Application do
       {Ecto.Migrator,
        repos: Application.fetch_env!(:kuma_san_kanji, :ecto_repos), skip: skip_migrations?()},
       {DNSCluster, query: Application.get_env(:kuma_san_kanji, :dns_cluster_query) || :ignore},
-      {Phoenix.PubSub, name: KumaSanKanji.PubSub},      # Start the Finch HTTP client for sending emails
+      # Start the Finch HTTP client for sending emails
+      {Phoenix.PubSub, name: KumaSanKanji.PubSub},
       {Finch, name: KumaSanKanji.Finch},
       # Start the Ash SQLite repository
       KumaSanKanji.Repo,

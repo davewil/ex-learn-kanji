@@ -10,58 +10,58 @@ defmodule KumaSanKanji.Content.ThematicGroup do
     domain: KumaSanKanji.Content.Domain,
     data_layer: AshSqlite.DataLayer
 
+  # Ensure Ash.Query is required
+  require Ash.Query
+
   attributes do
-    uuid_primary_key :id
-    attribute :name, :string, allow_nil?: false
-    attribute :description, :string
-    attribute :color_code, :string
-    attribute :icon_name, :string
-    attribute :order_index, :integer
+    uuid_primary_key(:id)
+    attribute(:name, :string, allow_nil?: false)
+    attribute(:description, :string)
+    attribute(:color_code, :string)
+    attribute(:icon_name, :string)
+    attribute(:order_index, :integer)
     timestamps()
   end
+
   relationships do
     belongs_to :parent, __MODULE__ do
-      attribute_writable? true
-      allow_nil? true
+      attribute_writable?(true)
+      allow_nil?(true)
     end
 
-    has_many :children, __MODULE__, destination_attribute: :parent_id
-    has_many :kanji_associations, KumaSanKanji.Content.KanjiThematicGroup
+    has_many(:children, __MODULE__, destination_attribute: :parent_id)
+    has_many(:kanji_associations, KumaSanKanji.Content.KanjiThematicGroup)
   end
 
   actions do
-    defaults [:create, :read, :update, :destroy]
+    defaults([:create, :read, :update, :destroy])
 
     read :by_name do
-      argument :name, :string, allow_nil?: false
-      filter expr(name == arg(:name))
+      argument(:name, :string, allow_nil?: false)
+
+      prepare(fn query, _context ->
+        name_val = Ash.Query.get_argument(query, :name)
+        Ash.Query.filter(query, name == ^name_val)
+      end)
     end
 
     read :ordered do
-      prepare fn query, _context ->
+      prepare(fn query, _context ->
         Ash.Query.sort(query, order_index: :asc)
-      end
+      end)
     end
 
     read :root_groups do
-      filter expr(is_nil(parent_id))
-      prepare fn query, _context ->
+      filter(expr(is_nil(parent_id)))
+
+      prepare(fn query, _context ->
         Ash.Query.sort(query, order_index: :asc)
-      end
+      end)
     end
   end
 
-  code_interface do
-    define :get, action: :read
-    define :create, action: :create
-    define :update, action: :update
-    define :destroy, action: :destroy
-    define :by_name, args: [:name], action: :by_name
-    define :ordered, action: :ordered
-    define :root_groups, action: :root_groups
-  end
   sqlite do
-    table "thematic_groups"
-    repo KumaSanKanji.Repo
+    table("thematic_groups")
+    repo(KumaSanKanji.Repo)
   end
 end

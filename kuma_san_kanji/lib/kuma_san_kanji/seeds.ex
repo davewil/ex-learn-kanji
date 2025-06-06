@@ -3,18 +3,19 @@ defmodule KumaSanKanji.Seeds do
   Seeds for the Kuma-san Kanji application.
   """
 
-  alias KumaSanKanji.Kanji.Kanji
   alias KumaSanKanji.Kanji.Meaning
   alias KumaSanKanji.Kanji.Pronunciation
   alias KumaSanKanji.Kanji.ExampleSentence
-  def insert_initial_data do
-    # Insert basic kanji data first
-    insert_kanji_data()
-    # Then insert content domain data that references the kanji
-    KumaSanKanji.Seeds.ContentSeeds.insert_initial_data()
+  alias KumaSanKanji.Domain
+
+  def seed_all do
+    # Seed Kanji data
+    insert_initial_data()
+    # Seed Content data
+    KumaSanKanji.Content.Seeds.insert_initial_data()
   end
 
-  defp insert_kanji_data do
+  def insert_initial_data do
     # List of Kanji with their data
     kanji_list = [
       %{
@@ -2035,8 +2036,11 @@ defmodule KumaSanKanji.Seeds do
 
     # Insert each Kanji and its related data
     Enum.each(kanji_list, fn kanji_data ->
+      # Use the domain to create the kanji
       {:ok, kanji} =
-        Kanji.create(Map.take(kanji_data, [:character, :grade, :stroke_count, :jlpt_level]))
+        Domain.create_kanji(
+          Map.take(kanji_data, [:character, :grade, :stroke_count, :jlpt_level])
+        )
 
       # Insert meanings
       Enum.each(kanji_data.meanings, fn meaning_data ->

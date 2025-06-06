@@ -86,7 +86,10 @@ defmodule KumaSanKanjiWeb.QuizLiveTest do
       {:ok, view, _} = live(conn, ~p"/quiz")
 
       # Set a very high number of recent answers to trigger rate limiting
-      send(view.pid, {:set_last_answer_times, List.duplicate(System.system_time(:millisecond), 101)})
+      send(
+        view.pid,
+        {:set_last_answer_times, List.duplicate(System.system_time(:millisecond), 101)}
+      )
 
       # Try submitting an answer
       view |> element("form") |> render_submit(%{answer: "test"})
@@ -120,13 +123,13 @@ defmodule KumaSanKanjiWeb.QuizLiveTest do
       {:ok, view, _} = live(conn, ~p"/quiz")
 
       # Fill the answer field
-      view 
-      |> element("form") 
+      view
+      |> element("form")
       |> render_change(%{answer: "tree"})
 
       # Press Enter key
-      view 
-      |> element("form") 
+      view
+      |> element("form")
       |> render_keydown(%{key: "Enter"})
 
       # Should show feedback

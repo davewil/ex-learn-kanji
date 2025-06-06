@@ -1,3 +1,7 @@
+---
+applyTo: '**'
+---
+
 # Rules for working with Ash
 
 ## Understanding Ash

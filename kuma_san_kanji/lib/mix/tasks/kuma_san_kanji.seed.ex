@@ -13,12 +13,16 @@ defmodule Mix.Tasks.KumaSanKanji.Seed do
 
     # Insert seed data
     IO.puts("Inserting seed data...")
-    KumaSanKanji.Seeds.insert_initial_data()
+    # Updated to call seed_all
+    KumaSanKanji.Seeds.seed_all()
 
     # Verify the data was inserted
-    alias KumaSanKanji.Kanji.Kanji
+    # alias KumaSanKanji.Kanji.Kanji # Removed unused alias
+    # Ensure Domain is aliased for the call below
+    alias KumaSanKanji.Domain
 
-    case Ash.read(Kanji) do
+    # Updated to use Domain.list_kanjis
+    case Domain.list_kanjis() do
       {:ok, kanjis} ->
         IO.puts("Seed complete! Inserted #{length(kanjis)} kanji records.")
 

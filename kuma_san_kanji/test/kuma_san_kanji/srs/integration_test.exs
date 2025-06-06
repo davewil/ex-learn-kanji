@@ -31,7 +31,9 @@ defmodule KumaSanKanji.SRS.IntegrationTest do
         stroke_count: 4,
         jlpt_level: 5
       })
-      |> Ash.create()    # Add meanings
+      # Add meanings
+      |> Ash.create()
+
     {:ok, _} =
       Meaning
       |> Ash.Changeset.for_create(:create, %{kanji_id: kanji.id, value: "water"})
@@ -40,7 +42,9 @@ defmodule KumaSanKanji.SRS.IntegrationTest do
     {:ok, _} =
       Meaning
       |> Ash.Changeset.for_create(:create, %{kanji_id: kanji.id, value: "liquid"})
-      |> Ash.create()# Add pronunciations
+      # Add pronunciations
+      |> Ash.create()
+
     {:ok, _} =
       Pronunciation
       |> Ash.Changeset.for_create(:create, %{
@@ -57,7 +61,9 @@ defmodule KumaSanKanji.SRS.IntegrationTest do
         value: "スイ",
         type: :on
       })
-      |> Ash.create()    # Load the relationships for testing
+      # Load the relationships for testing
+      |> Ash.create()
+
     {:ok, [kanji_with_relationships]} =
       Kanji
       |> Ash.Query.filter(id == ^kanji.id)
@@ -70,7 +76,7 @@ defmodule KumaSanKanji.SRS.IntegrationTest do
   defp login_user(%{conn: conn, user: user}) do
     conn =
       post(conn, ~p"/login", %{
-        "email" => user.email, 
+        "email" => user.email,
         "password" => "Password123!"
       })
 
@@ -97,7 +103,8 @@ defmodule KumaSanKanji.SRS.IntegrationTest do
 
       # Verify the quiz is initialized correctly
       assert view |> has_element?("div", kanji.character)
-      assert render(view) =~ "Repetitions: 0"      # Submit a correct answer (meaning)
+      # Submit a correct answer (meaning)
+      assert render(view) =~ "Repetitions: 0"
       correct_meaning = List.first(kanji.meanings).value
       view |> element("form") |> render_submit(%{answer: correct_meaning})
 
@@ -109,7 +116,9 @@ defmodule KumaSanKanji.SRS.IntegrationTest do
       view |> element("button", "Next") |> render_click()
 
       # Verify session stats are updated
-      assert render(view) =~ "Session: 1 answers submitted"      # Check if SRS state was updated in database
+      # Check if SRS state was updated in database
+      assert render(view) =~ "Session: 1 answers submitted"
+
       {:ok, [updated_progress]} =
         UserKanjiProgress
         |> Ash.Query.filter(id == ^progress.id)
@@ -118,7 +127,8 @@ defmodule KumaSanKanji.SRS.IntegrationTest do
       assert updated_progress.repetitions == 1
       assert updated_progress.correct_reviews == 1
       assert updated_progress.total_reviews == 1
-      assert updated_progress.last_result == :correct    end
+      assert updated_progress.last_result == :correct
+    end
 
     @tag :integration
     test "quiz handles incorrect answers properly", %{
@@ -136,13 +146,16 @@ defmodule KumaSanKanji.SRS.IntegrationTest do
       assert render(view) =~ "Incorrect"
 
       # Continue to next kanji
-      view |> element("button", "Next") |> render_click()      # Check if SRS state was updated correctly in database for incorrect answer
+      # Check if SRS state was updated correctly in database for incorrect answer
+      view |> element("button", "Next") |> render_click()
+
       {:ok, [updated_progress]} =
         UserKanjiProgress
         |> Ash.Query.filter(id == ^progress.id)
         |> Ash.read()
 
-      assert updated_progress.repetitions == 0  # Reset to 0 for incorrect answers
+      # Reset to 0 for incorrect answers
+      assert updated_progress.repetitions == 0
       assert updated_progress.correct_reviews == 0
       assert updated_progress.total_reviews == 1
       assert updated_progress.last_result == :incorrect
@@ -154,8 +167,11 @@ defmodule KumaSanKanji.SRS.IntegrationTest do
       progress: progress
     } do
       # Start the quiz LiveView
-      {:ok, view, _html} = live(conn, ~p"/quiz")      # Skip the kanji
-      view |> element("button", "Skip") |> render_click()      # Check if SRS state was updated correctly for skip
+      # Skip the kanji
+      {:ok, view, _html} = live(conn, ~p"/quiz")
+      # Check if SRS state was updated correctly for skip
+      view |> element("button", "Skip") |> render_click()
+
       {:ok, [updated_progress]} =
         UserKanjiProgress
         |> Ash.Query.filter(id == ^progress.id)
@@ -172,8 +188,9 @@ defmodule KumaSanKanji.SRS.IntegrationTest do
       user: _user
     } do
       # First, update the progress so the kanji is not due for review
-      future_date = DateTime.add(DateTime.utc_now(), 24 * 60 * 60, :second) # 1 day in the future
-      
+      # 1 day in the future
+      future_date = DateTime.add(DateTime.utc_now(), 24 * 60 * 60, :second)
+
       UserKanjiProgress
       |> Ash.Changeset.for_update(:update, %{
         id: progress.id,
@@ -197,9 +214,10 @@ defmodule KumaSanKanji.SRS.IntegrationTest do
     setup [:create_test_user, :create_test_kanji, :login_user, :initialize_srs_progress]
 
     @tag :security
+    # Create another user who shouldn't have access
     test "unauthorized access is prevented", %{
       progress: progress
-    } do      # Create another user who shouldn't have access
+    } do
       {:ok, other_user} =
         User
         |> Ash.Changeset.for_create(:sign_up, %{
@@ -225,13 +243,14 @@ defmodule KumaSanKanji.SRS.IntegrationTest do
       malicious_inputs = [
         "<script>alert('XSS')</script>",
         "' OR 1=1 --",
-        String.duplicate("a", 1000)  # Too long input
+        # Too long input
+        String.duplicate("a", 1000)
       ]
 
       for input <- malicious_inputs do
         # Submit the malicious input
         view |> element("form") |> render_submit(%{answer: input})
-        
+
         # Verify no unescaped content or exceptions
         html = render(view)
         refute html =~ "<script>"
@@ -249,28 +268,31 @@ defmodule KumaSanKanji.SRS.IntegrationTest do
       user: user
     } do
       # Simulate concurrent updates by creating a race condition
-      tasks = for _ <- 1..5 do
-        Task.async(fn -> 
-          Logic.record_review(progress.id, :correct, user.id)
-        end)
-      end
+      tasks =
+        for _ <- 1..5 do
+          Task.async(fn ->
+            Logic.record_review(progress.id, :correct, user.id)
+          end)
+        end
 
       # Wait for all tasks to complete
       results = Task.await_many(tasks)
-      
+
       # At least one should succeed, others might get errors
-      success_count = Enum.count(results, fn 
-        {:ok, _} -> true
-        _ -> false
-      end)
-        assert success_count >= 1
+      success_count =
+        Enum.count(results, fn
+          {:ok, _} -> true
+          _ -> false
+        end)
+
+      assert success_count >= 1
 
       # The final state should be consistent
       {:ok, [final_progress]} =
         UserKanjiProgress
         |> Ash.Query.filter(id == ^progress.id)
         |> Ash.read()
-        
+
       # Total reviews should be between 1 and 5
       assert final_progress.total_reviews > 0
       assert final_progress.total_reviews <= 5
@@ -286,29 +308,29 @@ defmodule KumaSanKanji.SRS.IntegrationTest do
     } do
       {:ok, view, _html} = live(conn, ~p"/quiz")
       html = render(view)
-      
+
       # Check for important ARIA attributes
       assert html =~ ~r/role="region"/
       assert html =~ ~r/aria-label="Quiz statistics"/
       assert html =~ ~r/aria-hidden="true"/
-      
+
       # Verify form elements have proper labels
       assert view |> has_element?("form")
       assert view |> has_element?("label[for]")
     end
 
-    @tag :accessibility  
+    @tag :accessibility
     test "keyboard navigation works correctly", %{
       conn: conn
     } do
       {:ok, view, _html} = live(conn, ~p"/quiz")
-      
+
       # Simulate pressing Enter key to submit form
-      view 
-      |> element("form") 
+      view
+      |> element("form")
       |> render_change(%{answer: "test"})
       |> render_keydown(%{key: "Enter"})
-      
+
       # Check if the form was submitted and feedback is shown
       assert view |> has_element?("div[role='region'][aria-label='Answer feedback']")
     end
