@@ -26,7 +26,7 @@ import topbar from "../vendor/topbar"
 const Hooks = {
   MobileMenu: {
     mounted() {
-      this.handleEvent("toggle-mobile-menu", () => {
+      this.el.addEventListener("toggle-mobile-menu", () => {
         const mobileMenu = document.getElementById("mobile-menu");
         if (mobileMenu.classList.contains("hidden")) {
           mobileMenu.classList.remove("hidden");
