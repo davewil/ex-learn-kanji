@@ -1,40 +1,39 @@
-<div class="min-h-screen bg-gradient-to-br from-oklch(0.95_0.02_250) to-oklch(0.98_0.01_280)">
+<div class="min-h-screen bg-gradient-to-br from-white to-sakura-light">
   <div class="px-4 py-8">
     <!-- Skip to content link for keyboard navigation -->
     <a
       href="#main-content"
-      class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-oklch(0.2_0.1_250) text-oklch(0.95_0.02_250) px-4 py-2 rounded-md z-50"
+      class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-accent-blue text-white px-4 py-2 rounded-md z-50 font-katakana"
     >
       Skip to main content
     </a>
     
 <!-- Header with user stats and navigation -->
-    <header class="max-w-4xl mx-auto mb-8" role="banner">
-      <div class="flex justify-between items-center bg-white/80 backdrop-blur-sm rounded-xl px-6 py-4 shadow-sm border border-oklch(0.9_0.02_250)">
+    <header class="max-w-4xl mx-auto mb-8" role="banner">        <div class="flex justify-between items-center bg-white/80 backdrop-blur-sm rounded-xl px-6 py-4 shadow-sm border border-sakura-light">
         <div class="flex items-center space-x-6">
-          <h1 class="text-2xl font-bold text-oklch(0.2_0.1_250)">
+          <h1 class="text-2xl font-display font-bold text-accent-blue">
             Kanji Review Quiz
           </h1>
           
 <!-- User statistics -->
           <%= if assigns[:user_stats] do %>
             <div
-              class="flex items-center space-x-4 text-sm text-oklch(0.4_0.05_250)"
+              class="flex items-center space-x-4 text-sm font-katakana text-gray-600"
               role="group"
               aria-label="Quiz statistics"
             >
               <div class="flex items-center space-x-1">
-                <span class="w-2 h-2 bg-oklch(0.6_0.15_120) rounded-full" aria-hidden="true">
+                <span class="w-2 h-2 bg-green-500 rounded-full" aria-hidden="true">
                 </span> <span>Total: {@user_stats.total_kanji}</span>
               </div>
               
               <div class="flex items-center space-x-1">
-                <span class="w-2 h-2 bg-oklch(0.6_0.15_50) rounded-full" aria-hidden="true">
+                <span class="w-2 h-2 bg-orange-500 rounded-full" aria-hidden="true">
                 </span> <span>Due: {@user_stats.due_today}</span>
               </div>
               
               <div class="flex items-center space-x-1">
-                <span class="w-2 h-2 bg-oklch(0.6_0.15_200) rounded-full" aria-hidden="true">
+                <span class="w-2 h-2 bg-blue-500 rounded-full" aria-hidden="true">
                 </span> <span>Accuracy: {Float.round(@user_stats.accuracy * 100, 1)}%</span>
               </div>
             </div>
@@ -46,7 +45,7 @@
           <button
             type="button"
             phx-click="toggle_keyboard_shortcuts"
-            class="p-2 text-oklch(0.5_0.05_250) hover:text-oklch(0.2_0.1_250) hover:bg-oklch(0.95_0.02_250) rounded-lg transition-colors"
+            class="p-2 text-gray-500 hover:text-sakura-dark hover:bg-sakura-light/20 rounded-lg transition-colors font-katakana"
             aria-label="Toggle keyboard shortcuts help"
             aria-expanded={@keyboard_shortcuts_visible}
           >
@@ -71,37 +70,37 @@
 <!-- Keyboard shortcuts help panel -->
       <%= if @keyboard_shortcuts_visible do %>
         <div
-          class="mt-4 bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-sm border border-oklch(0.9_0.02_250)"
+          class="mt-4 bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-sm border border-sakura-light"
           role="region"
           aria-label="Keyboard shortcuts"
         >
-          <h2 class="text-lg font-semibold text-oklch(0.2_0.1_250) mb-4">Keyboard Shortcuts</h2>
+          <h2 class="text-lg font-display font-semibold text-sakura-dark mb-4">Keyboard Shortcuts</h2>
           
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm font-katakana">
             <div class="flex justify-between">
-              <span class="text-oklch(0.4_0.05_250)">Submit answer</span>
-              <kbd class="px-2 py-1 bg-oklch(0.95_0.02_250) text-oklch(0.3_0.05_250) rounded border">
+              <span class="text-gray-600">Submit answer</span>
+              <kbd class="px-2 py-1 bg-sakura-light/20 text-sakura-dark rounded border">
                 Enter
               </kbd>
             </div>
             
             <div class="flex justify-between">
-              <span class="text-oklch(0.4_0.05_250)">Skip kanji</span>
-              <kbd class="px-2 py-1 bg-oklch(0.95_0.02_250) text-oklch(0.3_0.05_250) rounded border">
+              <span class="text-gray-600">Skip kanji</span>
+              <kbd class="px-2 py-1 bg-sakura-light/20 text-sakura-dark rounded border">
                 Esc
               </kbd>
             </div>
             
             <div class="flex justify-between">
-              <span class="text-oklch(0.4_0.05_250)">Toggle help</span>
-              <kbd class="px-2 py-1 bg-oklch(0.95_0.02_250) text-oklch(0.3_0.05_250) rounded border">
+              <span class="text-gray-600">Toggle help</span>
+              <kbd class="px-2 py-1 bg-sakura-light/20 text-sakura-dark rounded border">
                 ?
               </kbd>
             </div>
             
             <div class="flex justify-between">
-              <span class="text-oklch(0.4_0.05_250)">Continue after feedback</span>
-              <kbd class="px-2 py-1 bg-oklch(0.95_0.02_250) text-oklch(0.3_0.05_250) rounded border">
+              <span class="text-gray-600">Continue after feedback</span>
+              <kbd class="px-2 py-1 bg-sakura-light/20 text-sakura-dark rounded border">
                 Enter
               </kbd>
             </div>
@@ -114,8 +113,8 @@
       <%= if @quiz_error or is_nil(@current_kanji) do %>
         <!-- No kanji available -->
         <div class="text-center py-16" role="region" aria-label="No reviews available">
-          <div class="bg-white/80 backdrop-blur-sm rounded-xl p-8 shadow-sm border border-oklch(0.9_0.02_250)">
-            <div class="w-16 h-16 bg-oklch(0.6_0.15_200) rounded-full mx-auto mb-4 flex items-center justify-center">
+          <div class="bg-white/80 backdrop-blur-sm rounded-xl p-8 shadow-sm border border-sakura-light">
+            <div class="w-16 h-16 bg-blue-500 rounded-full mx-auto mb-4 flex items-center justify-center">
               <svg
                 class="w-8 h-8 text-white"
                 fill="none"
@@ -132,11 +131,11 @@
               </svg>
             </div>
             
-            <h2 class="text-xl font-semibold text-oklch(0.2_0.1_250) mb-2">
+            <h2 class="text-xl font-display font-semibold text-sakura-dark mb-2">
               No Reviews Available
             </h2>
             
-            <p class="text-oklch(0.4_0.05_250) mb-6">
+            <p class="text-gray-600 font-katakana mb-6">
               You don't have any kanji due for review right now. Start exploring to add kanji to your study set!
             </p>
             
@@ -144,7 +143,7 @@
               <button
                 type="button"
                 phx-click="restart_quiz"
-                class="px-6 py-3 bg-oklch(0.5_0.15_250) text-white rounded-lg hover:bg-oklch(0.4_0.15_250) transition-colors focus:outline-none focus:ring-2 focus:ring-oklch(0.5_0.15_250) focus:ring-offset-2"
+                class="px-6 py-3 bg-sakura text-white font-katakana rounded-lg hover:bg-sakura-dark transition-colors focus:outline-none focus:ring-2 focus:ring-sakura focus:ring-offset-2"
                 aria-label="Check for more reviews"
               >
                 Check Again
@@ -157,7 +156,7 @@
         <div class="space-y-6">
           <!-- Kanji card -->
           <div
-            class="bg-white/80 backdrop-blur-sm rounded-xl shadow-sm border border-oklch(0.9_0.02_250)"
+            class="bg-white/80 backdrop-blur-sm rounded-xl shadow-sm border border-sakura-light"
             role="region"
             aria-label="Current kanji"
           >
@@ -165,47 +164,51 @@
               <!-- Kanji character display -->
               <div class="mb-6">
                 <div
-                  class="inline-flex items-center justify-center w-32 h-32 bg-gradient-to-br from-oklch(0.95_0.02_250) to-oklch(0.98_0.01_280) rounded-2xl border-2 border-oklch(0.9_0.02_250) shadow-inner"
+                  class="inline-flex items-center justify-center w-32 h-32 bg-gradient-to-br from-sakura-light/20 to-white rounded-2xl border-2 border-sakura-light shadow-inner"
                   role="img"
                   aria-label={"Kanji character: " <> @current_kanji.character}
                 >
-                  <span class="text-7xl font-bold text-oklch(0.2_0.1_250) select-none">
+                  <span class="text-6xl font-bold tracking-tight text-center leading-none text-sakura-dark select-none">
                     {@current_kanji.character}
                   </span>
                 </div>
               </div>
               <!-- Kanji metadata -->
-              <div class="mb-6 text-sm text-oklch(0.4_0.05_250)">
+              <div class="mb-6 text-sm font-katakana text-gray-600">
                 <p>Grade: {@current_kanji.grade || "N/A"} |
                   Strokes: {@current_kanji.stroke_count} |
                   JLPT: {@current_kanji.jlpt_level || "N/A"}</p>
               </div>
               <!-- Progress indicator -->
               <div class="mb-6">
-                <div class="flex items-center justify-center space-x-2 text-xs text-oklch(0.5_0.05_250)">
-                  <span>Progress:</span>
-                  <div class="flex space-x-1">
-                    <%= for i <- 1..5 do %>
-                      <div
-                        class={[
-                          "w-2 h-2 rounded-full",
-                          if(@current_progress.repetitions >= i,
-                            do: "bg-oklch(0.6_0.15_120)",
-                            else: "bg-oklch(0.9_0.02_250)"
-                          )
-                        ]}
-                        aria-hidden="true"
-                      >
-                      </div>
-                    <% end %>
-                     <span class="ml-2">Rep: {@current_progress.repetitions}</span>
+                <div class="flex flex-col items-center space-y-2">
+                  <div class="flex items-center space-x-2 text-xs font-katakana text-gray-500">
+                    <span>Progress:</span>
+                    <div class="flex items-center space-x-1">
+                      <%= for i <- 1..5 do %>
+                        <div
+                          class={[
+                            "w-2 h-2 rounded-full",
+                            if(@current_progress.repetitions >= i,
+                              do: "bg-green-500",
+                              else: "bg-gray-200"
+                            )
+                          ]}
+                          aria-hidden="true"
+                        >
+                        </div>
+                      <% end %>
+                    </div>
+                  </div>
+                  <div class="text-xs font-katakana text-gray-500">
+                    Rep: {@current_progress.repetitions}
                   </div>
                 </div>
               </div>
             </div>
           </div>
           <!-- Answer section -->
-          <div class="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-sm border border-oklch(0.9_0.02_250)">
+          <div class="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-sm border border-sakura-light">
             <%= if @show_feedback do %>
               <!-- Feedback display -->
               <div
@@ -217,9 +220,9 @@
                 <div class={[
                   "inline-flex items-center justify-center w-12 h-12 rounded-full mb-4",
                   case @feedback_type do
-                    :success -> "bg-oklch(0.6_0.15_120)"
-                    :error -> "bg-oklch(0.7_0.15_0)"
-                    _ -> "bg-oklch(0.6_0.15_200)"
+                    :success -> "bg-green-500"
+                    :error -> "bg-red-500"
+                    _ -> "bg-blue-500"
                   end
                 ]}>
                   <%= case @feedback_type do %>
@@ -271,14 +274,14 @@
                   <% end %>
                 </div>
                 
-                <p class="text-oklch(0.3_0.05_250) mb-6 leading-relaxed">
+                <p class="text-sakura-dark font-katakana mb-6 leading-relaxed">
                   {@feedback_message}
                 </p>
                 
                 <button
                   type="button"
                   phx-click="next_kanji"
-                  class="px-8 py-3 bg-oklch(0.5_0.15_250) text-white rounded-lg hover:bg-oklch(0.4_0.15_250) transition-colors focus:outline-none focus:ring-2 focus:ring-oklch(0.5_0.15_250) focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  class="px-8 py-3 bg-sakura text-white font-katakana rounded-lg hover:bg-sakura-dark transition-colors focus:outline-none focus:ring-2 focus:ring-sakura focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   aria-label="Continue to next kanji"
                   disabled={not @show_feedback}
                   autofocus
@@ -297,7 +300,7 @@
                 <div>
                   <label
                     for="answer-input"
-                    class="block text-sm font-medium text-oklch(0.3_0.05_250) mb-2"
+                    class="block text-sm font-katakana font-medium text-sakura-dark mb-2"
                   >
                     Enter the meaning or reading:
                   </label>
@@ -310,7 +313,7 @@
                     phx-change="update_answer"
                     phx-keydown="key_down"
                     phx-hook="FocusInput"
-                    class="w-full px-4 py-3 border border-oklch(0.8_0.02_250) rounded-lg focus:outline-none focus:ring-2 focus:ring-oklch(0.5_0.15_250) focus:border-transparent text-lg"
+                    class="w-full px-4 py-3 border border-sakura-light rounded-lg focus:outline-none focus:ring-2 focus:ring-sakura focus:border-transparent text-lg font-katakana"
                     placeholder="Your answer..."
                     autocomplete="off"
                     autocapitalize="off"
@@ -319,7 +322,7 @@
                     autofocus
                     required
                   />
-                  <p id="answer-help" class="mt-2 text-sm text-oklch(0.5_0.05_250)">
+                  <p id="answer-help" class="mt-2 text-sm text-gray-600 font-katakana">
                     Enter either the English meaning or Japanese reading (hiragana/katakana/romaji)
                   </p>
                 </div>
@@ -327,7 +330,7 @@
                 <div class="flex justify-center space-x-4">
                   <button
                     type="submit"
-                    class="px-8 py-3 bg-oklch(0.5_0.15_250) text-white rounded-lg hover:bg-oklch(0.4_0.15_250) transition-colors focus:outline-none focus:ring-2 focus:ring-oklch(0.5_0.15_250) focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    class="px-8 py-3 bg-sakura text-white font-katakana rounded-lg hover:bg-sakura-dark transition-colors focus:outline-none focus:ring-2 focus:ring-sakura focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     disabled={String.trim(@user_answer) == ""}
                     aria-label="Submit your answer"
                   >
@@ -337,7 +340,7 @@
                   <button
                     type="button"
                     phx-click="skip_kanji"
-                    class="px-6 py-3 border border-oklch(0.6_0.05_250) text-oklch(0.6_0.05_250) rounded-lg hover:bg-oklch(0.6_0.05_250) hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-oklch(0.6_0.05_250) focus:ring-offset-2"
+                    class="px-6 py-3 border border-gray-400 text-gray-600 font-katakana rounded-lg hover:bg-gray-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
                     aria-label="Skip this kanji"
                   >
                     Skip
@@ -348,7 +351,7 @@
           </div>
           <!-- Session progress -->
           <div
-            class="bg-white/60 backdrop-blur-sm rounded-xl p-4 text-center text-sm text-oklch(0.5_0.05_250)"
+            class="bg-white/60 backdrop-blur-sm rounded-xl p-4 text-center text-sm text-gray-600 font-katakana"
             role="region"
             aria-label="Session progress"
           >

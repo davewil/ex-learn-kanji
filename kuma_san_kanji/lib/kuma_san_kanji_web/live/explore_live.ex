@@ -164,7 +164,7 @@ defmodule KumaSanKanjiWeb.ExploreLive do
           class="bg-white shadow-lg rounded-lg overflow-hidden border border-accent-purple"
         >
           <div class="p-6 text-center border-b border-sakura bg-sakura-light">
-            <span class="kanji-display text-8xl font-bold">{@kanji.character}</span>
+            <span class="kanji-display">{@kanji.character}</span>
           </div>
 
           <div class="p-6 bg-white text-gray-700">
