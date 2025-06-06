@@ -145,11 +145,11 @@ defmodule KumaSanKanjiWeb.ExploreLive do
         <h1 class="text-3xl font-display tracking-tight text-accent-blue sm:text-4xl">
           Explore Kanji <span class="text-sakura-dark">漢字</span>
         </h1>
-        
+
         <p class="mt-3 text-lg font-katakana text-gray-700">
           Learn and discover Japanese kanji characters with Kuma-san! Click the button below to see a new kanji.
         </p>
-        
+
         <div class="mt-6 mb-8">
           <button
             phx-click="new_kanji"
@@ -158,7 +158,7 @@ defmodule KumaSanKanjiWeb.ExploreLive do
             Show New Kanji
           </button>
         </div>
-        
+
         <div
           :if={@kanji}
           class="bg-white shadow-lg rounded-lg overflow-hidden border border-accent-purple"
@@ -166,34 +166,34 @@ defmodule KumaSanKanjiWeb.ExploreLive do
           <div class="p-6 text-center border-b border-sakura bg-sakura-light">
             <span class="kanji-display text-8xl font-bold">{@kanji.character}</span>
           </div>
-          
+
           <div class="p-6 bg-white text-gray-700">
             <div class="grid grid-cols-2 gap-4 mb-6">
               <div>
                 <h3 class="text-sm font-semibold text-accent-blue font-display">Grade</h3>
-                
+
                 <p class="mt-1 text-lg font-katakana">{@kanji.grade || "N/A"}</p>
               </div>
-              
+
               <div>
                 <h3 class="text-sm font-semibold text-accent-blue font-display">Stroke Count</h3>
-                
+
                 <p class="mt-1 text-lg font-katakana">{@kanji.stroke_count || "N/A"}</p>
               </div>
-              
+
               <div>
                 <h3 class="text-sm font-semibold text-accent-blue font-display">JLPT Level</h3>
-                
+
                 <p class="mt-1 text-lg font-katakana">N{@kanji.jlpt_level || "N/A"}</p>
               </div>
             </div>
-            
+
     <!-- Thematic Groups Section -->
             <div :if={@thematic_info.groups != []}>
               <h3 class="text-lg font-semibold text-accent-blue font-display mb-2">
                 Thematic Groups
               </h3>
-              
+
               <div class="mb-6 flex flex-wrap gap-2">
                 <%= for group <- @thematic_info.groups do %>
                   <% # Find the join entry for this group to get the subgroup if any
@@ -210,13 +210,13 @@ defmodule KumaSanKanjiWeb.ExploreLive do
                 <% end %>
               </div>
             </div>
-            
+
     <!-- Educational Context Section -->
             <div :if={@thematic_info.edu_context}>
               <h3 class="text-lg font-semibold text-accent-green font-display mb-2">
                 Educational Context
               </h3>
-              
+
               <div class="mb-6 bg-gray-50 rounded-md p-4 border border-accent-green/30">
                 <div class="flex justify-between">
                   <span class="font-medium">Grade {assigns.thematic_info.edu_context.grade}</span>
@@ -224,30 +224,30 @@ defmodule KumaSanKanjiWeb.ExploreLive do
                     {assigns.thematic_info.edu_context.age_range}
                   </span>
                 </div>
-                
+
                 <p class="text-gray-600 mt-2 text-sm">
                   {assigns.thematic_info.edu_context.description}
                 </p>
               </div>
             </div>
-            
+
     <!-- Learning Metadata Section -->
             <div :if={@learning_meta != []}>
               <h3 class="text-lg font-semibold text-accent-yellow font-display mb-2">
                 Learning Tips
               </h3>
-              
+
               <div class="mb-6 bg-gray-50 rounded-md p-4 border border-accent-yellow/30">
                 <%= for meta <- @learning_meta do %>
                   <div class="mb-3 last:mb-0">
                     <div class="font-medium">{meta.mnemonic_hint}</div>
-                    
+
                     <%= if meta.stroke_order_tips do %>
                       <p class="text-sm text-gray-600 mt-1">
                         <strong>Stroke Tips:</strong> {meta.stroke_order_tips}
                       </p>
                     <% end %>
-                    
+
                     <%= if meta.visual_evolution do %>
                       <p class="text-sm text-gray-600 mt-1">
                         <strong>Origin:</strong> {meta.visual_evolution}
@@ -257,9 +257,9 @@ defmodule KumaSanKanjiWeb.ExploreLive do
                 <% end %>
               </div>
             </div>
-            
+
             <h3 class="text-lg font-semibold text-accent-green font-display mb-2">Meanings</h3>
-            
+
             <ul class="mb-6 list-disc pl-6">
               <%= for meaning <- @kanji.meanings do %>
                 <li class={if meaning.is_primary, do: "font-bold", else: ""}>
@@ -267,9 +267,9 @@ defmodule KumaSanKanjiWeb.ExploreLive do
                 </li>
               <% end %>
             </ul>
-            
+
             <h3 class="text-lg font-semibold text-accent-pink font-display mb-2">Pronunciations</h3>
-            
+
             <div class="mb-6">
               <div class="overflow-hidden bg-gray-50 rounded-md border border-sakura">
                 <ul role="list" class="divide-y divide-sakura/30">
@@ -280,7 +280,7 @@ defmodule KumaSanKanjiWeb.ExploreLive do
                           {pronunciation.value}
                           <span class="ml-1 text-sm text-gray-600">({pronunciation.romaji})</span>
                         </span>
-                        
+
                         <span class={
                           case pronunciation.type do
                             "on" ->
@@ -301,11 +301,11 @@ defmodule KumaSanKanjiWeb.ExploreLive do
                 </ul>
               </div>
             </div>
-            
+
     <!-- Usage Examples Section -->
             <div :if={@usage_examples != []}>
               <h3 class="text-lg font-semibold text-accent-orange font-display mb-2">Common Words</h3>
-              
+
               <div class="mb-6">
                 <div class="overflow-hidden bg-gray-50 rounded-md border border-accent-orange/30">
                   <ul role="list" class="divide-y divide-accent-orange/30">
@@ -318,18 +318,18 @@ defmodule KumaSanKanjiWeb.ExploreLive do
                               {example.reading} ({example.romaji})
                             </span>
                           </span>
-                          
+
                           <span class="rounded-full bg-accent-orange/10 border border-accent-orange px-2.5 py-0.5 text-xs font-medium text-accent-orange">
                             Level {example.common_level}
                           </span>
                         </div>
-                        
+
                         <p class="text-gray-700 mt-1">{example.meaning}</p>
-                        
+
                         <%= if example.example_sentence do %>
                           <div class="mt-2 text-sm bg-white p-2 rounded border border-gray-200">
                             <p class="jp-text">{example.example_sentence}</p>
-                            
+
                             <p class="text-gray-600 mt-1">{example.translation}</p>
                           </div>
                         <% end %>
@@ -339,17 +339,17 @@ defmodule KumaSanKanjiWeb.ExploreLive do
                 </div>
               </div>
             </div>
-            
+
             <h3 class="text-lg font-semibold text-accent-purple font-display mb-2">
               Example Sentences
             </h3>
-            
+
             <div class="overflow-hidden bg-gray-50 sm:rounded-md border border-accent-purple">
               <ul role="list" class="divide-y divide-accent-purple/30">
                 <%= for sentence <- @kanji.example_sentences do %>
                   <li class="p-4">
                     <p class="font-medium jp-text text-gray-800">{sentence.japanese}</p>
-                    
+
                     <p class="text-gray-600 mt-1 font-katakana">{sentence.translation}</p>
                   </li>
                 <% end %>
@@ -357,7 +357,7 @@ defmodule KumaSanKanjiWeb.ExploreLive do
             </div>
           </div>
         </div>
-        
+
         <div
           :if={!@kanji}
           class="mt-8 bg-white shadow-lg rounded-lg overflow-hidden border border-sakura p-6"

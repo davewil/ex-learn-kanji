@@ -132,7 +132,7 @@ defmodule KumaSanKanji.SRS.UserKanjiProgress do
     end
   end
 
-  # Note: Authorization will be handled at the application level 
+  # Note: Authorization will be handled at the application level
   # since the base User resource doesn't use Ash policies
 
   code_interface do

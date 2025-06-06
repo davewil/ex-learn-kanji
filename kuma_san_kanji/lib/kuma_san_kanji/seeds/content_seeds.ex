@@ -250,7 +250,7 @@ defmodule KumaSanKanji.Seeds.ContentSeeds do
       %{group: "Nature", subgroup: "Plants", kanji_chars: ["花", "草", "竹", "林", "森", "田"]},
       # People & Animals (人と動物)
       %{group: "People & Animals", kanji_chars: ["人", "男", "女", "子", "犬", "虫"]},
-      # Body Parts (体の部分)  
+      # Body Parts (体の部分)
       %{group: "Body Parts", kanji_chars: ["口", "目", "耳", "手", "足"]},
       # Actions & Concepts (動作と概念)
       %{group: "Actions & Concepts", kanji_chars: ["見", "立", "生", "休", "入", "出"]},
