@@ -50,6 +50,12 @@ if config_env() == :prod do
     ],
     secret_key_base: secret_key_base
 
+  # Configure database for production
+  database_path = System.get_env("DATABASE_PATH") || "/app/db/kuma_san_kanji_prod.sqlite3"
+
+  config :kuma_san_kanji, KumaSanKanji.Repo,
+    database: database_path
+
   # ## SSL Support
   #
   # To get SSL working, you will need to add the `https` key

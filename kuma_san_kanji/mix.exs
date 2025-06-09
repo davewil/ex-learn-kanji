@@ -60,7 +60,9 @@ defmodule KumaSanKanji.MixProject do
       # Ash Framework dependencies
       {:ash, "~> 3.5"},
       {:ash_phoenix, "~> 2.3"},
+      {:igniter, "~> 0.6", only: [:dev, :test]},
       {:ash_sqlite, "~> 0.2.9"},
+      {:usage_rules, "~> 0.1"},
 
       # Password hashing
       {:pbkdf2_elixir, "~> 2.0"},

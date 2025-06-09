@@ -8,6 +8,7 @@ defmodule KumaSanKanji.Application do
   @impl true
   def start(_type, _args) do
     children = [
+      # Start telemetry supervisor in all environments
       KumaSanKanjiWeb.Telemetry,
       {Ecto.Migrator,
        repos: Application.fetch_env!(:kuma_san_kanji, :ecto_repos), skip: skip_migrations?()},
