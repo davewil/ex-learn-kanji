@@ -1,4 +1,5 @@
 defmodule KumaSanKanjiWeb.QuizLiveTest do
+
   use KumaSanKanjiWeb.ConnCase, async: false
   import Phoenix.LiveViewTest
 
