@@ -58,7 +58,7 @@ defmodule KumaSanKanjiWeb.QuizLiveTest do
 
   describe "Quiz LiveView" do
     test "mounts correctly and displays the quiz", %{conn: conn, kanji: kanji} do
-      {:ok, view, html} = live(conn, ~p"/quiz")
+      {:ok, _view, html} = live(conn, ~p"/quiz")
 
       assert html =~ "Kanji Review Quiz"
       assert html =~ kanji.character

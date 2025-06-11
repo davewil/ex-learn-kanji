@@ -9,7 +9,9 @@ defmodule KumaSanKanji.Content do
     extensions: [
       Ash.Extensions.ChangeTracking
     ],
-    validate_domain_config?: Mix.env() != :test  # Explicitly alias resources to ensure they're loaded
+    # Explicitly alias resources to ensure they're loaded
+    validate_domain_config?: Mix.env() != :test
+
   alias KumaSanKanji.Content.ThematicGroup
   alias KumaSanKanji.Content.KanjiThematicGroup
   alias KumaSanKanji.Content.EducationalContext
@@ -18,10 +20,10 @@ defmodule KumaSanKanji.Content do
 
   resources do
     # Order resources based on dependency hierarchy
-    resource ThematicGroup
-    resource EducationalContext
-    resource KanjiUsageExample
-    resource KanjiLearningMeta
-    resource KanjiThematicGroup
+    resource(ThematicGroup)
+    resource(EducationalContext)
+    resource(KanjiUsageExample)
+    resource(KanjiLearningMeta)
+    resource(KanjiThematicGroup)
   end
 end

@@ -82,7 +82,7 @@ defmodule KumaSanKanji.SRS.LogicTest do
       assert updated_progress.repetitions == 0
     end
 
-    test "returns unauthorized for wrong user", %{kanji: kanji, progress: progress} do
+    test "returns unauthorized for wrong user", %{kanji: _kanji, progress: progress} do
       other_user = create_user()
 
       {:error, :unauthorized} = Logic.record_review(progress.id, :correct, other_user.id)

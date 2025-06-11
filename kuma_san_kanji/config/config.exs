@@ -10,7 +10,7 @@ import Config
 config :kuma_san_kanji,
   generators: [timestamp_type: :utc_datetime],
   ecto_repos: [KumaSanKanji.Repo],
-  ash_domains: [KumaSanKanji.Domain, KumaSanKanji.Content.Domain, KumaSanKanji.Kanji]
+  ash_domains: [KumaSanKanji.Domain, KumaSanKanji.Content.Domain, KumaSanKanji.Kanji, KumaSanKanji.Content]
 
 # Configures the endpoint
 config :kuma_san_kanji, KumaSanKanjiWeb.Endpoint,
