@@ -1,5 +1,5 @@
 defmodule KumaSanKanjiWeb.UserLiveAuthTest do
-  use KumaSanKanjiWeb.ConnCase, async: true
+  use KumaSanKanjiWeb.ConnCase, async: false
 
   alias KumaSanKanji.Accounts.User
   alias KumaSanKanji.Auth

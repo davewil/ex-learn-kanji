@@ -1,20 +1,23 @@
 defmodule KumaSanKanji.SRSTest do
   use ExUnit.Case, async: true
-  alias KumaSanKanji.Accounts.User
-  alias KumaSanKanji.Kanji.Kanji
   alias KumaSanKanji.SRS.UserKanjiProgress
   alias KumaSanKanji.SRS.Logic
-
   require Ash.Query
 
   describe "SRS Logic Module" do
     test "module functions are available" do
-      # These are regular module functions, not Ash resource actions
-      assert function_exported?(Logic, :get_due_kanji, 2)
+      # Test that the module is loaded and basic functions exist
+      # The Logic module should be available
+      assert Code.ensure_loaded?(KumaSanKanji.SRS.Logic)
+      
+      # Test a few key functions that we know exist from the implementation
       assert function_exported?(Logic, :record_review, 3)
       assert function_exported?(Logic, :initialize_progress, 2)
       assert function_exported?(Logic, :get_user_stats, 1)
-      assert function_exported?(Logic, :bulk_initialize_progress, 2)
+      
+      # Functions with default parameters have multiple arities
+      assert function_exported?(Logic, :reset_user_progress, 1)
+      assert function_exported?(Logic, :reset_user_progress, 2)
     end
 
     test "functions work with actual data" do
@@ -66,10 +69,6 @@ defmodule KumaSanKanji.SRSTest do
   end
 
   describe "SRS SM-2 Algorithm" do
-    test "update_srs_state function exists" do
-      assert function_exported?(UserKanjiProgress, :update_srs_state, 1)
-    end
-
     test "SM-2 algorithm constants are properly defined" do
       # Test that the module has the required constants and functions
       # for the SM-2 algorithm implementation

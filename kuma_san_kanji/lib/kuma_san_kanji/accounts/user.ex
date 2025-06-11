@@ -5,14 +5,28 @@ defmodule KumaSanKanji.Accounts.User do
 
   attributes do
     uuid_primary_key(:id)
-    attribute(:email, :ci_string, allow_nil?: false)
-    attribute(:hashed_password, :string, allow_nil?: false, sensitive?: true)
-    attribute(:username, :string, allow_nil?: false)
+    attribute(:email, :ci_string, allow_nil?: false, public?: true)
+    attribute(:hashed_password, :string, allow_nil?: false, sensitive?: true, public?: true)
+    attribute(:username, :string, allow_nil?: false, public?: true)
     attribute(:joined_at, :utc_datetime, default: &DateTime.utc_now/0)
   end
 
   actions do
-    defaults([:create, :read, :update, :destroy])
+    defaults([:read, :update, :destroy])
+
+    create :create do
+      accept([:email, :username, :hashed_password])
+    end
+
+    create :register do
+      accept([:email, :username])
+      argument(:password, :string, allow_nil?: false, sensitive?: true)
+      argument(:password_confirmation, :string, allow_nil?: false, sensitive?: true)
+
+      change(&__MODULE__.validate_password_length/2)
+      change(&__MODULE__.validate_password_confirmation/2)
+      change(&__MODULE__.hash_password/2)
+    end
 
     create :sign_up do
       accept([:email, :username])
@@ -58,6 +72,18 @@ defmodule KumaSanKanji.Accounts.User do
 
     if password && String.length(password) < 8 do
       Ash.Changeset.add_error(changeset, :password, "must be at least 8 characters")
+    else
+      changeset
+    end
+  end
+
+  # Custom validation function for password confirmation
+  def validate_password_confirmation(changeset, _context) do
+    password = Ash.Changeset.get_argument(changeset, :password)
+    password_confirmation = Ash.Changeset.get_argument(changeset, :password_confirmation)
+
+    if password && password_confirmation && password != password_confirmation do
+      Ash.Changeset.add_error(changeset, :password_confirmation, "does not match password")
     else
       changeset
     end

@@ -1,7 +1,7 @@
 defmodule KumaSanKanji.Kanji.MeaningTest do
   use KumaSanKanji.DataCase, async: false
 
-  alias KumaSanKanji.Kanji.Kanji
+  alias KumaSanKanji.Kanji
   alias KumaSanKanji.Kanji.Meaning
 
   describe "Meaning resource actions" do
@@ -27,7 +27,7 @@ defmodule KumaSanKanji.Kanji.MeaningTest do
       assert meaning.kanji_id == kanji.id
 
       # Verify it can be read back via the relationship
-      {:ok, [kanji_with_meanings]} = Kanji.get_by_id(kanji.id, load: [:meanings])
+      kanji_with_meanings = KumaSanKanji.Domain.get_kanji_by_id!(kanji.id, load: [:meanings])
       assert Enum.any?(kanji_with_meanings.meanings, &(&1.id == meaning.id))
     end
 

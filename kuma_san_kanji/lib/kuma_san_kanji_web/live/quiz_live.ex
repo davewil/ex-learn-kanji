@@ -33,12 +33,28 @@ defmodule KumaSanKanjiWeb.QuizLive do
         {:ok, restored_state} ->
           restored_state
 
+        {:error, :no_session_id} ->
+          # No session_id provided - this is normal for new sessions, not an error
+          # Initialize new session
+          case initialize_quiz_session(user.id) do
+            {:ok, new_state} ->
+              new_state
+
+            {:error, reason} ->
+              Logger.error(
+                "[QuizLive] Failed to initialize quiz session for user #{user.id}: #{inspect(reason)}"
+              )
+
+              {:error, reason}
+          end
+
         {:error, reason} ->
+          # Log actual session restoration errors
           Logger.error(
-            "[QuizLive] Failed to restore session for user #{user.id} with params #{inspect(params)}: #{inspect(reason)}"
+            "[QuizLive] Failed to restore session for user #{user.id} with session_id #{params["session_id"]}: #{inspect(reason)}"
           )
 
-          # Initialize new session
+          # Initialize new session as fallback
           case initialize_quiz_session(user.id) do
             {:ok, new_state} ->
               new_state
@@ -269,9 +285,28 @@ defmodule KumaSanKanjiWeb.QuizLive do
     {:noreply, socket}
   end
 
+  # Direct key event handlers for test framework compatibility
+  def handle_event("Escape", _params, socket) do
+    handle_event("key_down", %{"key" => "Escape"}, socket)
+  end
+
+  def handle_event("Enter", _params, socket) do
+    handle_event("key_down", %{"key" => "Enter"}, socket)
+  end
+
   @impl true
   def handle_event("update_answer", %{"answer" => answer}, socket) do
     {:noreply, assign(socket, :user_answer, answer)}
+  end
+
+  # Handle test messages
+  @impl true
+  def handle_info({:set_last_answer_times, times}, socket) do
+    {:noreply, assign(socket, :last_answer_times, times)}
+  end
+
+  def handle_info(_msg, socket) do
+    {:noreply, socket}
   end
 
   # Private helper functions

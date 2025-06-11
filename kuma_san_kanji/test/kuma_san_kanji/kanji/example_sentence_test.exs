@@ -1,7 +1,7 @@
 defmodule KumaSanKanji.Kanji.ExampleSentenceTest do
   use KumaSanKanji.DataCase, async: false
 
-  alias KumaSanKanji.Kanji.Kanji
+  alias KumaSanKanji.Kanji
   alias KumaSanKanji.Kanji.ExampleSentence
 
   describe "ExampleSentence resource actions" do
@@ -27,7 +27,7 @@ defmodule KumaSanKanji.Kanji.ExampleSentenceTest do
       assert example_sentence.translation == "This is an example sentence."
       assert example_sentence.kanji_id == kanji.id
       # Verify it can be read back via the relationship
-      {:ok, [kanji_with_examples]} = Kanji.get_by_id(kanji.id, load: [:example_sentences])
+      kanji_with_examples = KumaSanKanji.Domain.get_kanji_by_id!(kanji.id, load: [:example_sentences])
 
       assert Enum.any?(kanji_with_examples.example_sentences, fn es ->
                es.id == example_sentence.id

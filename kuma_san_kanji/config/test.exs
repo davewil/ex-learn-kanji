@@ -7,8 +7,11 @@ import Config
 # Run `mix help test` for more information.
 config :kuma_san_kanji, KumaSanKanji.Repo,
   database: Path.expand("../kuma_san_kanji_test.sqlite3", __DIR__),
-  pool_size: 5,
-  pool: Ecto.Adapters.SQL.Sandbox
+  pool_size: 1,
+  pool: Ecto.Adapters.SQL.Sandbox,
+  # SQLite-specific settings for better test concurrency
+  timeout: 60_000,
+  ownership_timeout: 60_000
 
 # We don't run a server during test. If one is required,
 # you can enable the server option below.

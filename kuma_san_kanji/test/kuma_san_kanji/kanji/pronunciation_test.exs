@@ -1,7 +1,7 @@
 defmodule KumaSanKanji.Kanji.PronunciationTest do
   use KumaSanKanji.DataCase, async: false
 
-  alias KumaSanKanji.Kanji.Kanji
+  alias KumaSanKanji.Kanji
   alias KumaSanKanji.Kanji.Pronunciation
 
   describe "Pronunciation resource actions" do
@@ -27,7 +27,7 @@ defmodule KumaSanKanji.Kanji.PronunciationTest do
       assert pronunciation.kanji_id == kanji.id
 
       # Verify it can be read back via the relationship
-      {:ok, [kanji_with_pronunciations]} = Kanji.get_by_id(kanji.id, load: [:pronunciations])
+      kanji_with_pronunciations = KumaSanKanji.Domain.get_kanji_by_id!(kanji.id, load: [:pronunciations])
       assert Enum.any?(kanji_with_pronunciations.pronunciations, &(&1.id == pronunciation.id))
     end
 

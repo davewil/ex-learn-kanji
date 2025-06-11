@@ -46,7 +46,7 @@ defmodule KumaSanKanji.SRS.UserKanjiProgress do
   end
 
   actions do
-    defaults([:read, :update, :destroy])
+    defaults([:read, :destroy])
 
     create :create do
       accept([:user_id, :kanji_id, :next_review_date, :interval, :ease_factor, :repetitions])
@@ -58,6 +58,21 @@ defmodule KumaSanKanji.SRS.UserKanjiProgress do
           _ -> changeset
         end
       end)
+    end
+
+    # Default update action with essential fields
+    update :update do
+      accept([
+        :next_review_date,
+        :interval,
+        :ease_factor,
+        :repetitions,
+        :last_result,
+        :first_reviewed_at,
+        :last_reviewed_at,
+        :total_reviews,
+        :correct_reviews
+      ])
     end
 
     # Custom action to initialize progress for a user-kanji pair

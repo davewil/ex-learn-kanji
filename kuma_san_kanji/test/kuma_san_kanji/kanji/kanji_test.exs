@@ -1,7 +1,7 @@
 defmodule KumaSanKanji.Kanji.KanjiTest do
   use KumaSanKanji.DataCase, async: false
 
-  alias KumaSanKanji.Kanji.Kanji
+  alias KumaSanKanji.Kanji
 
   test "create action creates a kanji with timestamps" do
     params = %{character: "測", grade: 1, stroke_count: 10, jlpt_level: 1}
@@ -28,35 +28,33 @@ defmodule KumaSanKanji.Kanji.KanjiTest do
       %{k1: k1, k2: k2, k3: k3}
     end
 
-    test "fetches kanji in the correct relative order", %{k1: k1, k2: k2, k3: k3} do
+  test "fetches kanji in the correct relative order", %{k1: k1, k2: k2, k3: k3} do
       # Get the current total count
       total_count = Kanji.count_all!()
 
       # These tests assume the 3 kanji we created are at the end of the list
       # because they were inserted last
 
-      {:ok, [fetched_k1]} = Kanji.by_offset(total_count - 3)
+      {:ok, fetched_k1} = Kanji.by_offset(total_count - 3)
       assert fetched_k1.id == k1.id
       assert fetched_k1.character == "一"
 
-      {:ok, [fetched_k2]} = Kanji.by_offset(total_count - 2)
+      {:ok, fetched_k2} = Kanji.by_offset(total_count - 2)
       assert fetched_k2.id == k2.id
       assert fetched_k2.character == "二"
 
-      {:ok, [fetched_k3]} = Kanji.by_offset(total_count - 1)
+      {:ok, fetched_k3} = Kanji.by_offset(total_count - 1)
       assert fetched_k3.id == k3.id
       assert fetched_k3.character == "三"
     end
 
-    test "returns an empty list for an out-of-bounds offset" do
+    test "returns an error for an out-of-bounds offset" do
       total_count = Kanji.count_all!()
 
       # Test with an offset that's definitely out of bounds
-      {:ok, result} = Kanji.by_offset(total_count)
-      assert result == []
+      {:error, _} = Kanji.by_offset(total_count)
 
-      {:ok, result_large_offset} = Kanji.by_offset(total_count + 100)
-      assert result_large_offset == []
+      {:error, _} = Kanji.by_offset(total_count + 100)
     end
 
     test "returns only one record" do
@@ -65,7 +63,8 @@ defmodule KumaSanKanji.Kanji.KanjiTest do
 
       # Pick any valid offset, e.g. 0
       {:ok, result} = Kanji.by_offset(0)
-      assert length(result) == 1
+      # Since it's a get? action, it returns a single record, not a list
+      assert result.character != nil
     end
   end
 

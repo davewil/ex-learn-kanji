@@ -3,9 +3,7 @@ defmodule KumaSanKanji.Seeds do
   Seeds for the Kuma-san Kanji application.
   """
 
-  alias KumaSanKanji.Kanji.Meaning
-  alias KumaSanKanji.Kanji.Pronunciation
-  alias KumaSanKanji.Kanji.ExampleSentence
+  require Ash.Query
   alias KumaSanKanji.Domain
 
   def seed_all do
@@ -2036,25 +2034,83 @@ defmodule KumaSanKanji.Seeds do
 
     # Insert each Kanji and its related data
     Enum.each(kanji_list, fn kanji_data ->
-      # Use the domain to create the kanji
-      {:ok, kanji} =
-        Domain.create_kanji(
-          Map.take(kanji_data, [:character, :grade, :stroke_count, :jlpt_level])
-        )
+      # Check if kanji already exists, if not create it
+      kanji = 
+        case Domain.get_kanji_by_character(kanji_data.character) do
+          {:ok, existing_kanji} ->
+            # Kanji already exists, use it
+            existing_kanji
+          
+          {:error, _} ->
+            # Kanji doesn't exist, create it
+            case Domain.create_kanji(
+              Map.take(kanji_data, [:character, :grade, :stroke_count, :jlpt_level])
+            ) do
+              {:ok, new_kanji} -> new_kanji
+              {:error, error} ->
+                # If creation fails due to duplication (race condition), try to get it again
+                case Domain.get_kanji_by_character(kanji_data.character) do
+                  {:ok, existing_kanji} -> existing_kanji
+                  {:error, _} -> 
+                    # If we still can't get it, raise the original error
+                    raise "Failed to create or find kanji #{kanji_data.character}: #{inspect(error)}"
+                end
+            end
+        end
 
-      # Insert meanings
+      # Insert meanings only if they don't already exist
       Enum.each(kanji_data.meanings, fn meaning_data ->
-        Meaning.create(Map.put(meaning_data, :kanji_id, kanji.id))
+        # Check if meaning already exists
+        language = meaning_data[:language] || "en"
+        value = meaning_data.value
+        existing_meanings = KumaSanKanji.Kanji.Meaning
+          |> Ash.Query.filter(kanji_id: kanji.id, value: value, language: language)
+          |> Ash.read!(authorize?: false)
+
+        if existing_meanings == [] do
+          # Meaning doesn't exist, create it
+          case Domain.create_meaning(Map.put(meaning_data, :kanji_id, kanji.id)) do
+            {:ok, _meaning} -> :ok
+            {:error, _error} -> :ok  # Ignore creation errors (might be race condition)
+          end
+        end
       end)
 
-      # Insert pronunciations
+      # Insert pronunciations only if they don't already exist
       Enum.each(kanji_data.pronunciations, fn pronunciation_data ->
-        Pronunciation.create(Map.put(pronunciation_data, :kanji_id, kanji.id))
+        # Check if pronunciation already exists
+        pronunciation_value = pronunciation_data.value
+        pronunciation_type = pronunciation_data.type
+        existing_pronunciations = KumaSanKanji.Kanji.Pronunciation
+          |> Ash.Query.filter(kanji_id: kanji.id, value: pronunciation_value, type: pronunciation_type)
+          |> Ash.read!(authorize?: false)
+
+        if existing_pronunciations == [] do
+          # Pronunciation doesn't exist, create it
+          case Domain.create_pronunciation(Map.put(pronunciation_data, :kanji_id, kanji.id)) do
+            {:ok, _pronunciation} -> :ok
+            {:error, _error} -> :ok  # Ignore creation errors (might be race condition)
+          end
+        end
       end)
 
-      # Insert example sentences
+      # Insert example sentences only if they don't already exist
       Enum.each(kanji_data.example_sentences, fn sentence_data ->
-        ExampleSentence.create(Map.put(sentence_data, :kanji_id, kanji.id))
+        # Check if sentence already exists
+        language = sentence_data[:language] || "en"
+        japanese_text = sentence_data.japanese || ""
+        translation_text = sentence_data.translation
+        existing_sentences = KumaSanKanji.Kanji.ExampleSentence
+          |> Ash.Query.filter(kanji_id: kanji.id, japanese: japanese_text, translation: translation_text, language: language)
+          |> Ash.read!(authorize?: false)
+
+        if existing_sentences == [] do
+          # Sentence doesn't exist, create it
+          case Domain.create_example_sentence(Map.put(sentence_data, :kanji_id, kanji.id)) do
+              {:ok, _sentence} -> :ok
+              {:error, _error} -> :ok  # Ignore creation errors (might be race condition)
+            end
+        end
       end)
     end)
   end

@@ -9,19 +9,23 @@ This plan details how to implement a secure, accessible, interactive kanji strok
 ## 1. Data Source and Asset Management
 
 **Purpose:**  
-- Download KanjiVG SVGs and store them in `priv/static/kanjivg/`.
+
+- Download [KanjiVG SVGs](https://github.com/KanjiVG/kanjivg) and store them in `priv/static/kanjivg/`.
 - Name SVG files by kanji Unicode codepoint (e.g., `6f22.svg` for 漢).
 - Sanitize SVGs at build time using SVGO or a custom script.
 - Maintain an attribution file for KanjiVG as required by its license.
 
 **Security:**  
+
 - Only serve sanitized SVGs from this trusted, static folder.
 - Validate kanji input to prevent path traversal or injection.
 
 **Accessibility:**  
+
 - All SVGs must have descriptive `alt` text.
 
 **Testing:**  
+
 - Add tests to ensure the correct SVG is rendered for each kanji.
 - Test for resilience to missing or malformed SVGs.
 
@@ -30,25 +34,35 @@ This plan details how to implement a secure, accessible, interactive kanji strok
 ## 2. LiveView/Component for Stroke Order
 
 **Purpose:**  
+
 - Create a `KanjiStrokeOrderComponent` LiveView that:
   - Accepts a kanji character.
   - Looks up and renders the corresponding KanjiVG SVG.
   - Optionally animates strokes using JavaScript (e.g., progressive reveal).
 
 **Security:**  
+
 - Escape all user-facing content.
 - Validate all user input.
 - Only authenticated users can access personalized features.
 - Review any third-party JavaScript libraries used for SVG animation for vulnerabilities.
 
 **Accessibility:**  
+
 - Animation controls must be keyboard accessible and screen-reader friendly.
 
 **Styling:**  
+
 - Use Tailwind CSS for layout and controls.
 - Use oklch for accent colors (e.g., highlight current stroke).
+- Match the current design system for the application.
+
+**Animation:**
+
+- Use [kanjivganimate](https://github.com/nihongodera/kanjivganimate) js library to add support for animating the drawing in correct stroke order of the kanji.
 
 **Error Handling:**  
+
 - If an SVG is missing or malformed, display a user-friendly fallback message or icon.
 
 ---
@@ -56,14 +70,17 @@ This plan details how to implement a secure, accessible, interactive kanji strok
 ## 3. Integration with Kanji Detail and Quiz Pages
 
 **Purpose:**  
+
 - Add a "Show Stroke Order" button or section to kanji detail and quiz pages.
 - Allow users to view, replay, or step through the stroke order animation.
 
 **Security:**  
+
 - Ensure only validated kanji characters are used to fetch SVGs.
 - Escape all rendered content.
 
 **Testing:**  
+
 - Add integration tests to verify the stroke order feature is available and functional on relevant pages.
 
 ---

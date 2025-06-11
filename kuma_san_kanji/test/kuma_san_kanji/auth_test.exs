@@ -1,5 +1,5 @@
 defmodule KumaSanKanji.AuthTest do
-  use KumaSanKanji.DataCase, async: true
+  use KumaSanKanji.DataCase, async: false
   alias KumaSanKanji.Auth
   alias KumaSanKanji.Accounts.User
 

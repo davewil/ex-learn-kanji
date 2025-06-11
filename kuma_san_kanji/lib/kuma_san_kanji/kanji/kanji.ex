@@ -28,7 +28,7 @@ defmodule KumaSanKanji.Kanji.Kanji do
 
     # Simple read action to list all kanjis (for counting)
     read :count_all do
-      # No special preparation needed, we'll count the results manually
+      # Will count results manually in domain
     end
 
     create :create do

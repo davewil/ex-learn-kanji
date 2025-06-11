@@ -3,7 +3,7 @@ defmodule KumaSanKanji.SRS.LogicTest do
 
   alias KumaSanKanji.SRS.Logic
   alias KumaSanKanji.SRS.UserKanjiProgress
-  alias KumaSanKanji.Kanji.Kanji
+  alias KumaSanKanji.Kanji
   alias KumaSanKanji.Accounts.User
 
   describe "get_due_kanji/2" do
@@ -197,25 +197,20 @@ defmodule KumaSanKanji.SRS.LogicTest do
     User
     |> Ash.Changeset.for_create(:create, %{
       email: "test#{System.unique_integer()}@example.com",
-      password: "password123"
+      username: "testuser#{System.unique_integer()}",
+      hashed_password: Pbkdf2.hash_pwd_salt("password123")
     })
     |> Ash.create!()
   end
 
   defp create_kanji do
-    character = "#{System.unique_integer()}"
+    character = "テ#{System.unique_integer()}"
 
-    Kanji
-    |> Ash.Changeset.for_create(:create, %{
+    Kanji.create!(%{
       character: character,
-      meaning: "test meaning",
-      onyomi: "test",
-      kunyomi: "test",
       grade: 1,
-      frequency: 1000,
       jlpt_level: 5,
       stroke_count: 5
     })
-    |> Ash.create!()
   end
 end
