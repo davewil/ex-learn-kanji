@@ -30,8 +30,8 @@ defmodule KumaSanKanji.Kanji.ExampleSentence do
       argument :translation, :string, allow_nil?: false
       argument :language, :string, default: "en"
 
-      filter expr(kanji_id == ^arg(:kanji_id) and japanese == ^arg(:japanese) and 
-        translation == ^arg(:translation) and 
+      filter expr(kanji_id == ^arg(:kanji_id) and japanese == ^arg(:japanese) and
+        translation == ^arg(:translation) and
         (language == ^arg(:language) or (is_nil(language) and ^arg(:language) == "en")))
     end
   end

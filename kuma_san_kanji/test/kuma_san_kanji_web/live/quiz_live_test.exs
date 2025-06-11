@@ -27,7 +27,7 @@ defmodule KumaSanKanjiWeb.QuizLiveTest do
 
     # Add meanings
     {:ok, _} = KumaSanKanji.Domain.create_meaning(%{
-      kanji_id: kanji.id, 
+      kanji_id: kanji.id,
       value: "tree"
     })
 
@@ -190,7 +190,7 @@ defmodule KumaSanKanjiWeb.QuizLiveTest do
 
       # Verify proper h1 exists
       assert view |> has_element?("h1", "Kanji Review Quiz")
-      
+
       # Check if there's an h2 (either for quiz or no reviews available)
       has_h2 = view |> has_element?("h2")
       # This is acceptable as h2 may not always be present depending on the quiz state

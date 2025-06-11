@@ -3,7 +3,7 @@ defmodule KumaSanKanjiWeb.ExploreLiveTest do
   import Phoenix.LiveViewTest
 
   @endpoint KumaSanKanjiWeb.Endpoint
-  
+
   describe "ExploreLive functionality" do
     setup do
       # Create test kanji data
@@ -13,14 +13,14 @@ defmodule KumaSanKanjiWeb.ExploreLiveTest do
         stroke_count: 4,
         jlpt_level: 5
       })
-      
+
       kanji2 = KumaSanKanji.Domain.create_kanji!(%{
         character: "火",
         grade: 1,
         stroke_count: 4,
         jlpt_level: 5
       })
-      
+
       %{kanji1: kanji1, kanji2: kanji2}
     end
 

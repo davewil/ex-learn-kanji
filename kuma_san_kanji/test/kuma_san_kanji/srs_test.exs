@@ -9,12 +9,12 @@ defmodule KumaSanKanji.SRSTest do
       # Test that the module is loaded and basic functions exist
       # The Logic module should be available
       assert Code.ensure_loaded?(KumaSanKanji.SRS.Logic)
-      
+
       # Test a few key functions that we know exist from the implementation
       assert function_exported?(Logic, :record_review, 3)
       assert function_exported?(Logic, :initialize_progress, 2)
       assert function_exported?(Logic, :get_user_stats, 1)
-      
+
       # Functions with default parameters have multiple arities
       assert function_exported?(Logic, :reset_user_progress, 1)
       assert function_exported?(Logic, :reset_user_progress, 2)

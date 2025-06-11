@@ -2035,12 +2035,12 @@ defmodule KumaSanKanji.Seeds do
     # Insert each Kanji and its related data
     Enum.each(kanji_list, fn kanji_data ->
       # Check if kanji already exists, if not create it
-      kanji = 
+      kanji =
         case Domain.get_kanji_by_character(kanji_data.character) do
           {:ok, existing_kanji} ->
             # Kanji already exists, use it
             existing_kanji
-          
+
           {:error, _} ->
             # Kanji doesn't exist, create it
             case Domain.create_kanji(
@@ -2051,7 +2051,7 @@ defmodule KumaSanKanji.Seeds do
                 # If creation fails due to duplication (race condition), try to get it again
                 case Domain.get_kanji_by_character(kanji_data.character) do
                   {:ok, existing_kanji} -> existing_kanji
-                  {:error, _} -> 
+                  {:error, _} ->
                     # If we still can't get it, raise the original error
                     raise "Failed to create or find kanji #{kanji_data.character}: #{inspect(error)}"
                 end

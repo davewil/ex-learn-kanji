@@ -29,7 +29,7 @@ defmodule KumaSanKanji.Kanji.Meaning do
       argument :value, :string, allow_nil?: false
       argument :language, :string, default: "en"
 
-      filter expr(kanji_id == ^arg(:kanji_id) and value == ^arg(:value) and 
+      filter expr(kanji_id == ^arg(:kanji_id) and value == ^arg(:value) and
         (language == ^arg(:language) or (is_nil(language) and ^arg(:language) == "en")))
     end
   end

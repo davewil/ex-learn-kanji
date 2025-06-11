@@ -35,7 +35,7 @@ defmodule KumaSanKanji.Domain do
       define(:list_example_sentences_by_kanji, action: :read)
             define(:get_sentence_by_kanji_and_text, action: :by_kanji_and_text)
     end
-    
+
     resource(KumaSanKanji.SRS.UserKanjiProgress)
   end
 

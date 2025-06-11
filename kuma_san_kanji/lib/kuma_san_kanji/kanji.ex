@@ -13,7 +13,7 @@ defmodule KumaSanKanji.Kanji do
       define :get_by_id, action: :get_by_id, args: [:id]
       define :by_offset, action: :by_offset, args: [:offset]
     end
-    
+
     resource(KumaSanKanji.Kanji.Meaning)
     resource(KumaSanKanji.Kanji.Pronunciation)
     resource(KumaSanKanji.Kanji.ExampleSentence)
